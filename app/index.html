@@ -14,8 +14,8 @@
 <link rel="preconnect" href="https://firestore.googleapis.com" crossorigin>
 <link rel="preconnect" href="https://identitytoolkit.googleapis.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@600;700;800&display=swap">
-<link rel="stylesheet" href="cuymax-theme.css?v=45">
-<link rel="stylesheet" href="styles.css?v=45">
+<link rel="stylesheet" href="cuymax-theme.css?v=47">
+<link rel="stylesheet" href="styles.css?v=47">
 </head>
 <body>
 <div class="app">
@@ -556,6 +556,23 @@
   <span>Asistente</span>
 </button>
 
+<dialog id="dlg-granja" class="modal" aria-labelledby="dlg-granja-titulo">
+  <div class="modal-head">
+    <div>
+      <h3 id="dlg-granja-titulo">Esta etiqueta es de otra granja</h3>
+      <div class="sub">No se abrió la poza para no mezclar datos</div>
+    </div>
+    <button type="button" class="icon-btn" id="dlg-granja-x" aria-label="Cerrar ventana">
+      <svg viewBox="0 0 24 24" aria-hidden="true" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 6l12 12M18 6L6 18"/></svg>
+    </button>
+  </div>
+  <p class="muted" id="dlg-granja-msg" style="margin-top:12px;font-size:13.5px;line-height:1.55;"></p>
+  <div class="modal-foot">
+    <button type="button" class="btn" id="btn-granja-ahora">Ahora no</button>
+    <button type="button" class="btn primary" id="btn-granja-cambiar">Cambiar de cuenta</button>
+  </div>
+</dialog>
+
 <div class="toasts" id="toasts" aria-live="polite"></div>
 
 <script src="vendor/chart.umd.min.js"></script>
@@ -564,11 +581,11 @@
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-functions-compat.js"></script>
 <script src="../firebase-config.js"></script>
-<script src="mock-data.js?v=45"></script>
-<script src="ia-asistente.js?v=45"></script>
-<script src="firestore-data.js?v=45"></script>
-<script src="auth-guard.js?v=45"></script>
-<script src="app.js?v=45"></script>
+<script src="mock-data.js?v=47"></script>
+<script src="ia-asistente.js?v=47"></script>
+<script src="firestore-data.js?v=47"></script>
+<script src="auth-guard.js?v=47"></script>
+<script src="app.js?v=47"></script>
 <script>
 if ("serviceWorker" in navigator) {
   window.addEventListener("load", function () {

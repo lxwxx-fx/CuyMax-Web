@@ -978,6 +978,7 @@ async function cargarLotes() {
   else { document.getElementById("ficha").innerHTML = vacio("No hay pozas en esta granja."); }
 }
 var grafica = null;
+var _curvaSeq = 0;
 
 async function verLote() {
   var cod = document.getElementById("sel-lote").value;
@@ -1054,7 +1055,36 @@ function urlDePoza(cod) {
     if (modo) { params.set("modo", modo); }
   }
   params.set("poza", cod);
+  /* La granja va dentro de la etiqueta: así el panel detecta si alguien
+     entra con otra cuenta y evita registrar en la granja equivocada. */
+  var g = granjaActualId();
+  if (g) { params.set("g", g); }
   return location.origin + location.pathname + "?" + params.toString();
+}
+
+/* uid de la granja en la que se está trabajando ("" si no hay sesión). */
+function granjaActualId() {
+  try {
+    if (typeof fsGranja === "function") { return fsGranja(); }
+  } catch (e) { /* sin sesión o modo local */ }
+  return "";
+}
+
+function granjaDeUrl() {
+  try { return (new URLSearchParams(location.search).get("g") || "").trim(); } catch (e) { return ""; }
+}
+
+function avisarGranjaAjena() {
+  var dlg = document.getElementById("dlg-granja");
+  var msg = document.getElementById("dlg-granja-msg");
+  var actual = (document.getElementById("granja-nombre") || {}).textContent || "esta granja";
+  if (msg) {
+    msg.innerHTML = "La etiqueta que acabas de leer pertenece a <b>otra granja</b>, y ahora mismo estás " +
+      "dentro de <b>" + escHtml(actual.trim()) + "</b>.<br><br>" +
+      "Si registras aquí, el movimiento quedaría en la granja equivocada. Entra con la cuenta de esa " +
+      "granja y vuelve a pegar el teléfono: te llevará directo a la poza.";
+  }
+  if (dlg && dlg.showModal && !dlg.open) { dlg.showModal(); }
 }
 
 function pozaDeUrl() {
@@ -1161,6 +1191,13 @@ async function registrarEnPoza(cod, accion) {
 function aplicarPozaDeUrl(lotes) {
   var cod = pozaDeUrl();
   if (!cod) { return; }
+  /* Primero la granja: si la etiqueta es de otra cuenta, no se muestra nada. */
+  var gEtiqueta = granjaDeUrl();
+  var gActual = granjaActualId();
+  if (gEtiqueta && gActual && gEtiqueta !== gActual) {
+    avisarGranjaAjena();
+    return;
+  }
   var existe = !!(lotes && lotes.some(function (l) {
     return String(l.codigo).toUpperCase() === cod;
   }));
@@ -1183,6 +1220,8 @@ function margenCuy(e, l) {
 }
 
 async function dibujarCurva(cod, lote) {
+  /* Si se cambia de poza mientras carga la anterior, solo la última dibuja. */
+  var seq = ++_curvaSeq;
   var cv = document.getElementById("grafica-peso");
   if (grafica) { grafica.destroy(); grafica = null; }
   if (typeof Chart === "undefined") { return; }
@@ -1190,6 +1229,7 @@ async function dibujarCurva(cod, lote) {
   try {
     h = await api("GET", "lotes/" + encodeURIComponent(cod) + "/pesajes?granja_id=" + cfg().granja);
   } catch (e) { h = []; }
+  if (seq !== _curvaSeq) { return; }
   var ctx = cv.getContext("2d");
   ctx.clearRect(0, 0, cv.width, cv.height);
   var sinCurva = (typeof Chart === "undefined" || h.length < 2);
@@ -1232,6 +1272,7 @@ async function dibujarCurva(cod, lote) {
       tension: 0
     });
   }
+  if (grafica) { grafica.destroy(); grafica = null; }
   grafica = new Chart(cv, {
     type: "line",
     data: { labels: h.map(function (p) { return fechaCorta2(p.fecha); }), datasets: sets },
@@ -1275,6 +1316,19 @@ document.getElementById("lote-acciones").addEventListener("click", function (ev)
 });
 document.getElementById("btn-nfc-copiar").addEventListener("click", copiarEnlaceNfc);
 document.getElementById("btn-nfc-grabar").addEventListener("click", grabarEtiquetaNfc);
+
+/* Aviso de etiqueta de otra granja: cerrar o cambiar de cuenta. */
+(function () {
+  var dlg = document.getElementById("dlg-granja");
+  if (!dlg) { return; }
+  function cerrar() { if (dlg.open) { dlg.close(); } }
+  document.getElementById("dlg-granja-x").addEventListener("click", cerrar);
+  document.getElementById("btn-granja-ahora").addEventListener("click", cerrar);
+  document.getElementById("btn-granja-cambiar").addEventListener("click", function () {
+    if (typeof window.cuymaxSalir === "function") { window.cuymaxSalir(); return; }
+    location.href = "../login.html?next=" + encodeURIComponent(location.pathname + location.search);
+  });
+})();
 
 /* ---------- ventana de registro ---------- */
 var dlgRegistrar = document.getElementById("dlg-registrar");
