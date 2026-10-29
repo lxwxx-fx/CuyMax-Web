@@ -716,3 +716,75 @@ html[data-theme="dark"] dialog.modal {
   }
 }
 
+
+/* ---------- acciones rápidas y etiqueta NFC de la poza ---------- */
+.lote-acciones {
+  display: flex;
+  flex-wrap: wrap;
+  gap: .5rem;
+  margin-top: .9rem;
+}
+.lote-acciones .btn {
+  flex: 1 1 118px;
+  justify-content: center;
+}
+.nfc-box {
+  margin-top: .9rem;
+  padding: .8rem .9rem;
+  border: 1px dashed var(--border-2);
+  border-radius: var(--r-md);
+  background: var(--surface-2);
+}
+.nfc-top {
+  display: flex;
+  gap: .6rem;
+  align-items: flex-start;
+}
+.nfc-top b {
+  display: block;
+  font-size: .86rem;
+}
+.nfc-top .sub {
+  font-size: .76rem;
+  color: var(--text-2);
+}
+.nfc-ico {
+  display: grid;
+  place-items: center;
+  width: 34px;
+  height: 34px;
+  flex: none;
+  border-radius: 10px;
+  background: var(--accent-soft);
+  color: var(--accent-ink);
+}
+.nfc-url {
+  display: block;
+  margin-top: .65rem;
+  padding: .45rem .55rem;
+  font-family: var(--mono);
+  font-size: .72rem;
+  line-height: 1.4;
+  color: var(--text-2);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--r-sm);
+  word-break: break-all;
+  user-select: all;
+}
+.nfc-botones {
+  display: flex;
+  flex-wrap: wrap;
+  gap: .5rem;
+  margin-top: .55rem;
+}
+.nfc-estado {
+  margin-top: .5rem;
+  font-size: .78rem;
+  color: var(--text-2);
+}
+.nfc-estado:empty {
+  display: none;
+}
+.nfc-estado.ok { color: var(--accent-ink); }
+.nfc-estado.err { color: var(--red); }

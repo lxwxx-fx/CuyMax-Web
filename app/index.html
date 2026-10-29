@@ -14,8 +14,8 @@
 <link rel="preconnect" href="https://firestore.googleapis.com" crossorigin>
 <link rel="preconnect" href="https://identitytoolkit.googleapis.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@600;700;800&display=swap">
-<link rel="stylesheet" href="cuymax-theme.css?v=44">
-<link rel="stylesheet" href="styles.css?v=44">
+<link rel="stylesheet" href="cuymax-theme.css?v=45">
+<link rel="stylesheet" href="styles.css?v=45">
 </head>
 <body>
 <div class="app">
@@ -166,6 +166,29 @@
           <div id="ficha" aria-live="polite">Elige una poza.</div>
           <button id="btn-exportar-lote" type="button" class="btn sm" style="margin-left:auto;">Exportar esta poza (CSV)</button>
           <div class="fila-prog"><span id="prog-etiqueta">Cuyes vivos de la poza</span><div class="prog" id="prog-lote"><i></i></div></div>
+          <div class="lote-acciones oculto" id="lote-acciones" aria-label="Registro rápido de esta poza">
+            <button type="button" class="btn primary" data-poza-accion="peso">⚖️ Pesar</button>
+            <button type="button" class="btn" data-poza-accion="alimento">🌿 Alimento</button>
+            <button type="button" class="btn" data-poza-accion="muerte">☠️ Muerte</button>
+            <button type="button" class="btn" data-poza-accion="venta">💰 Venta</button>
+          </div>
+          <div class="nfc-box oculto" id="nfc-box">
+            <div class="nfc-top">
+              <span class="nfc-ico" aria-hidden="true">
+                <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M6 8.5a8 8 0 0 1 0 7M10 5.5a12 12 0 0 1 0 13M14 3a16 16 0 0 1 0 18"/></svg>
+              </span>
+              <div>
+                <b>Etiqueta NFC de esta poza</b>
+                <div class="sub">Pega el teléfono en la etiqueta y se abre esta ficha</div>
+              </div>
+            </div>
+            <code class="nfc-url" id="nfc-url">—</code>
+            <div class="nfc-botones">
+              <button type="button" class="btn sm" id="btn-nfc-copiar">Copiar enlace</button>
+              <button type="button" class="btn sm primary" id="btn-nfc-grabar">Grabar etiqueta</button>
+            </div>
+            <p class="nfc-estado" id="nfc-estado" aria-live="polite"></p>
+          </div>
         </div>
         <div class="grid grid-2 mt">
           <div class="card">
@@ -541,11 +564,11 @@
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-functions-compat.js"></script>
 <script src="../firebase-config.js"></script>
-<script src="mock-data.js?v=44"></script>
-<script src="ia-asistente.js?v=44"></script>
-<script src="firestore-data.js?v=44"></script>
-<script src="auth-guard.js?v=44"></script>
-<script src="app.js?v=44"></script>
+<script src="mock-data.js?v=45"></script>
+<script src="ia-asistente.js?v=45"></script>
+<script src="firestore-data.js?v=45"></script>
+<script src="auth-guard.js?v=45"></script>
+<script src="app.js?v=45"></script>
 <script>
 if ("serviceWorker" in navigator) {
   window.addEventListener("load", function () {

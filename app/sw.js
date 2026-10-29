@@ -2,9 +2,9 @@
    Al publicar cambios se auto-actualiza sin cerrar pestañas (skipWaiting + claim).
    Los archivos locales llevan ?v= para que al subir una versión el navegador no
    reutilice una copia vieja de la caché HTTP (Firebase sirve los .js con max-age). */
-const CACHE = "cuymax-v44";
-const SHELL = ["index.html", "cuymax-theme.css?v=44", "styles.css?v=44", "app.js?v=44",
-  "auth-guard.js?v=44", "mock-data.js?v=44", "ia-asistente.js?v=44", "firestore-data.js?v=44",
+const CACHE = "cuymax-v45";
+const SHELL = ["index.html", "cuymax-theme.css?v=45", "styles.css?v=45", "app.js?v=45",
+  "auth-guard.js?v=45", "mock-data.js?v=45", "ia-asistente.js?v=45", "firestore-data.js?v=45",
   "manifiesto.webmanifest", "logo.png", "icono-192.png", "icono-512.png", "vendor/chart.umd.min.js"];
 
 self.addEventListener("install", function (e) {

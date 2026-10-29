@@ -981,7 +981,7 @@ var grafica = null;
 
 async function verLote() {
   var cod = document.getElementById("sel-lote").value;
-  if (!cod) { return; }
+  if (!cod) { ocultarFichaExtra(); return; }
   document.getElementById("ficha").innerHTML = esqueleto(1);
   try {
     try { localStorage.setItem("cuymax_lote_activo", cod); } catch (e) {}
@@ -1032,7 +1032,147 @@ async function verLote() {
       }
     } catch (e2) { /* la ficha sigue visible sin el bloque económico */ }
     dibujarCurva(cod, l);
-  } catch (e) { document.getElementById("ficha").textContent = "Error: " + e.message; }
+    document.getElementById("lote-acciones").classList.remove("oculto");
+    pintarNfc(cod);
+  } catch (e) {
+    document.getElementById("ficha").textContent = "Error: " + e.message;
+    ocultarFichaExtra();
+  }
+}
+
+/* ---------- etiqueta NFC: enlace directo a una poza ----------
+   La etiqueta guarda una URL del tipo /app/?poza=P-001. Al pegar el teléfono,
+   el sistema abre esa dirección y el panel salta a la ficha de la poza. */
+function urlDePoza(cod) {
+  var params = new URLSearchParams();
+  /* En la web publicada la etiqueta debe abrir datos reales, no la demo. */
+  if (/\.(web\.app|firebaseapp\.com)$/i.test(location.hostname)) {
+    params.set("modo", "real");
+  } else {
+    var modo = "";
+    try { modo = new URLSearchParams(location.search).get("modo") || ""; } catch (e) { modo = ""; }
+    if (modo) { params.set("modo", modo); }
+  }
+  params.set("poza", cod);
+  return location.origin + location.pathname + "?" + params.toString();
+}
+
+function pozaDeUrl() {
+  var cod = "";
+  try {
+    cod = new URLSearchParams(location.search).get("poza") || "";
+  } catch (e) { cod = ""; }
+  if (!cod && location.hash) {
+    var m = location.hash.match(/poza=([^&]+)/i);
+    if (m) { try { cod = decodeURIComponent(m[1]); } catch (e2) { cod = ""; } }
+  }
+  return cod.trim().toUpperCase();
+}
+
+function ocultarFichaExtra() {
+  var a = document.getElementById("lote-acciones");
+  var n = document.getElementById("nfc-box");
+  if (a) { a.classList.add("oculto"); }
+  if (n) { n.classList.add("oculto"); }
+}
+
+function pintarNfc(cod) {
+  var caja = document.getElementById("nfc-box");
+  if (!caja) { return; }
+  var url = urlDePoza(cod);
+  caja.classList.remove("oculto");
+  document.getElementById("nfc-url").textContent = url;
+  var estado = document.getElementById("nfc-estado");
+  estado.textContent = "";
+  estado.className = "nfc-estado";
+  var btn = document.getElementById("btn-nfc-grabar");
+  if ("NDEFReader" in window) {
+    btn.classList.add("primary");
+    btn.textContent = "Grabar etiqueta";
+  } else {
+    btn.classList.remove("primary");
+    btn.textContent = "¿Cómo grabar?";
+  }
+}
+
+async function copiarEnlaceNfc() {
+  var texto = document.getElementById("nfc-url").textContent;
+  var estado = document.getElementById("nfc-estado");
+  try {
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      await navigator.clipboard.writeText(texto);
+    } else {
+      var ta = document.createElement("textarea");
+      ta.value = texto;
+      ta.setAttribute("readonly", "");
+      ta.style.position = "fixed";
+      ta.style.opacity = "0";
+      document.body.appendChild(ta);
+      ta.select();
+      document.execCommand("copy");
+      document.body.removeChild(ta);
+    }
+    estado.className = "nfc-estado ok";
+    estado.textContent = "Enlace copiado. Pégalo en NFC Tools si vas a grabar desde el iPhone.";
+  } catch (e) {
+    estado.className = "nfc-estado err";
+    estado.textContent = "No se pudo copiar. Mantén pulsado el enlace de arriba para copiarlo a mano.";
+  }
+}
+
+async function grabarEtiquetaNfc() {
+  var url = document.getElementById("nfc-url").textContent;
+  var estado = document.getElementById("nfc-estado");
+  if (!("NDEFReader" in window)) {
+    estado.className = "nfc-estado";
+    estado.innerHTML = "Para grabar desde aquí hace falta <b>Chrome en un Android</b> con NFC. " +
+      "En iPhone o computadora usa la app gratuita <b>NFC Tools</b>: «Escribir» → «URL» y pega el enlace de arriba.";
+    return;
+  }
+  var btn = document.getElementById("btn-nfc-grabar");
+  btn.disabled = true;
+  estado.className = "nfc-estado";
+  estado.textContent = "Acerca la etiqueta a la parte de atrás del teléfono…";
+  try {
+    var ndef = new NDEFReader();
+    await ndef.write({ records: [{ recordType: "url", data: url }] });
+    estado.className = "nfc-estado ok";
+    estado.textContent = "Etiqueta grabada. Ya puedes pegarla en la poza.";
+  } catch (e) {
+    estado.className = "nfc-estado err";
+    estado.textContent = "No se pudo grabar: " + (e && e.message ? e.message : e) +
+      ". Mantén la etiqueta pegada al teléfono hasta que termine.";
+  } finally {
+    btn.disabled = false;
+  }
+}
+
+/* Abre el diálogo de registro con la poza ya elegida. */
+async function registrarEnPoza(cod, accion) {
+  await abrirRegistrar(accion);
+  ["peso-lote", "alim-lote", "muerte-lote", "ing-lote", "venta-lote", "faena-lote", "retiro-lote"]
+    .forEach(function (id) {
+      var s = document.getElementById(id);
+      if (s) { s.value = cod; }
+    });
+}
+
+/* Al arrancar: si la URL trae ?poza=, salta a esa ficha. */
+function aplicarPozaDeUrl(lotes) {
+  var cod = pozaDeUrl();
+  if (!cod) { return; }
+  var existe = !!(lotes && lotes.some(function (l) {
+    return String(l.codigo).toUpperCase() === cod;
+  }));
+  if (!existe) {
+    showToast("La etiqueta apunta a " + cod + ", que no está en esta granja", "err");
+    return;
+  }
+  try { localStorage.setItem("cuymax_lote_activo", cod); } catch (e) { /* sin almacenamiento */ }
+  var sel = document.getElementById("sel-lote");
+  if (sel) { sel.value = cod; }
+  irA("lote");
+  showToast("Etiqueta NFC · " + cod);
 }
 
 function margenCuy(e, l) {
@@ -1125,6 +1265,17 @@ async function dibujarCurva(cod, lote) {
 }
 document.getElementById("sel-lote").addEventListener("change", verLote);
 
+/* Registro rápido desde la ficha: abre el formulario con la poza ya puesta. */
+document.getElementById("lote-acciones").addEventListener("click", function (ev) {
+  var b = ev.target.closest ? ev.target.closest("[data-poza-accion]") : null;
+  if (!b) { return; }
+  var cod = document.getElementById("sel-lote").value;
+  if (!cod) { return; }
+  registrarEnPoza(cod, b.dataset.pozaAccion);
+});
+document.getElementById("btn-nfc-copiar").addEventListener("click", copiarEnlaceNfc);
+document.getElementById("btn-nfc-grabar").addEventListener("click", grabarEtiquetaNfc);
+
 /* ---------- ventana de registro ---------- */
 var dlgRegistrar = document.getElementById("dlg-registrar");
 var dlgAcciones = document.getElementById("dlg-acciones");
@@ -1163,7 +1314,7 @@ function mostrarAccion(accion) {
   }
 }
 
-function abrirRegistrar(accion) {
+async function abrirRegistrar(accion) {
   if (!dlgRegistrar) { return; }
   mostrarAccion(accion || null);
   if (!dlgRegistrar.open) {
@@ -1174,7 +1325,8 @@ function abrirRegistrar(accion) {
     var primero = dlgAcciones ? dlgAcciones.querySelector(".dlg-accion") : null;
     if (primero) { try { primero.focus({ preventScroll: true }); } catch (e) {} }
   }
-  llenarSelectsLotes();
+  /* Se espera: quien llame puede querer fijar la poza justo después. */
+  await llenarSelectsLotes();
   cargarPozas();
 }
 
@@ -2079,4 +2231,6 @@ document.getElementById("registros").addEventListener("click", async function (e
   pintarUbicaciones();
   await Promise.all([pAjustes, pPanel, pSelects, pPozas]);
   generarAutomatico();
+  /* Si se llegó pegando una etiqueta NFC, abre la ficha de esa poza. */
+  aplicarPozaDeUrl(await pSelects);
 })();
