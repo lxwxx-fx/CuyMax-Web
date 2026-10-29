@@ -256,15 +256,26 @@ function animarNumero(id, desde, hacia, formato) {
   var el = document.getElementById(id);
   if (!el) { return; }
   desde = Number(desde) || 0; hacia = Number(hacia) || 0;
-  var pasos = 20, paso = 0;
+  function pintar(v) { el.textContent = formato ? formato(v) : Math.round(v); }
+  /* Con la pestaña en segundo plano (o si se pide menos movimiento) no se
+     anima: se escribe el valor final de una vez. Así los KPI nunca se quedan
+     a medias ni en cero. */
+  var reducido = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  if (document.hidden || reducido) { pintar(hacia); return; }
+  var pasos = 20, paso = 0, terminado = false, cancelado = false;
   function frame() {
+    if (cancelado) { return; }
     paso++;
     var t = Math.min(1, paso / pasos);
-    var v = desde + (hacia - desde) * t;
-    el.textContent = formato ? formato(v) : Math.round(v);
+    pintar(desde + (hacia - desde) * t);
     if (t < 1) { requestAnimationFrame(frame); }
+    else { terminado = true; }
   }
   frame();
+  /* Red de seguridad: si el navegador congela la animación, fija el valor final. */
+  setTimeout(function () {
+    if (!terminado && !cancelado) { cancelado = true; pintar(hacia); }
+  }, 600);
 }
 
 function md(t) {
@@ -565,14 +576,64 @@ document.getElementById("btn-actualizar").addEventListener("click", async functi
   }
 });
 
+/* ---------- KPI recordados entre visitas ----------
+   Al abrir el panel se pinta al instante el último valor conocido de la cuenta
+   y, en cuanto Firestore responde, se sustituye por el dato real. Así no se ven
+   guiones durante los primeros segundos. */
+function kpiClaveGuardado() {
+  try {
+    if (typeof MODO_REAL !== "undefined" && MODO_REAL && typeof fsGranja === "function") {
+      return "cuymax_kpi_" + fsGranja();
+    }
+  } catch (e) { /* la sesión aún no está lista */ }
+  return null;
+}
+
+function leerKpiGuardados() {
+  var k = kpiClaveGuardado();
+  if (!k) { return null; }
+  try {
+    var s = JSON.parse(localStorage.getItem(k) || "null");
+    if (!s || !s.v || !s.t) { return null; }
+    if (Date.now() - Number(s.t) > 7 * 86400000) { return null; }
+    return s.v;
+  } catch (e) { return null; }
+}
+
+function guardarKpi(valores) {
+  var k = kpiClaveGuardado();
+  if (!k) { return; }
+  try { localStorage.setItem(k, JSON.stringify({ t: Date.now(), v: valores })); } catch (e) { /* sin almacenamiento */ }
+}
+
+function pintarKpiGuardados() {
+  var v = leerKpiGuardados();
+  if (!v) { return; }
+  Object.keys(v).forEach(function (id) {
+    var el = document.getElementById(id);
+    if (el && v[id] !== null && v[id] !== undefined && v[id] !== "") { el.textContent = v[id]; }
+  });
+}
+
 async function cargarPanel() {
   var g = cfg().granja;
   ["partos", "lotes", "economico", "retiros"].forEach(function (id) {
     document.getElementById(id).innerHTML = esqueleto(2);
   });
+  pintarKpiGuardados();
+  var kpiNuevos = {};
+  /* Se lanzan todas las consultas a la vez: antes iban una detrás de otra y
+     los KPI tardaban varios segundos en aparecer. */
+  var pPartos = api("GET", "partos-proximos?granja_id=" + g);
+  var pLotes = api("GET", "lotes?granja_id=" + g);
+  var pEco = api("GET", "resumen-economico?granja_id=" + g);
+  var pRet = api("GET", "retiros?granja_id=" + g);
+  var pEvo = cargarEvo(5);
+  var pNac = dibujarNacimientos();
   try {
-    var partos = await api("GET", "partos-proximos?granja_id=" + g);
+    var partos = await pPartos;
     animarNumero("kpi-partos", document.getElementById("kpi-partos").textContent || 0, partos.length);
+    kpiNuevos["kpi-partos"] = String(partos.length);
     document.getElementById("partos").innerHTML = partos.length
       ? tabla(["Hembra", "Ubicación", "Plazo", "Fecha", ""], partos.map(function (p) {
           var cls = p.dias_restantes < 0 ? "b-red" : (p.dias_restantes <= 3 ? "b-amber" : "b-green");
@@ -582,9 +643,10 @@ async function cargarPanel() {
             '<td><button type="button" class="btn sm" data-borrar-prox="' + escHtml(p.id) + '">Quitar</button></td></tr>';
         }))
       : vacio("Sin partos próximos en los siguientes 10 días.");
-    var lotes = await api("GET", "lotes?granja_id=" + g);
+    var lotes = await pLotes;
     var vivos = lotes.reduce(function (s, l) { return s + (l.vivos || 0); }, 0);
     animarNumero("kpi-vivos", document.getElementById("kpi-vivos").textContent || 0, vivos);
+    kpiNuevos["kpi-vivos"] = String(vivos);
     document.getElementById("lotes").innerHTML = lotes.length
       ? tabla(["Poza", "Estado", "Vivos", "Ocupación"], lotes.map(function (l) {
           var pct = l.cantidad_inicial ? Math.round(100 * l.vivos / l.cantidad_inicial) : 0;
@@ -595,12 +657,14 @@ async function cargarPanel() {
             "<td><div class=\"prog " + pc + "\"><i style=\"width:" + pct + "%\"></i></div></td></tr>";
         }), [2])
       : vacio("Todavía no hay pozas registradas en esta granja.");
-    var eco = await api("GET", "resumen-economico?granja_id=" + g);
+    var eco = await pEco;
     var margen = eco.reduce(function (s, e) { return s + (e.margen === null ? 0 : Number(e.margen)); }, 0);
     var hayNulos = eco.some(function (e) { return e.margen === null; });
     var elMargen = document.getElementById("kpi-margen");
-    if (eco.length) { animarNumero("kpi-margen", 0, margen, function (v) { return "S/ " + v.toFixed(2) + (hayNulos ? "*" : ""); }); }
+    var margenPrevio = Number(String(elMargen.textContent || "").replace(/[^\d.-]/g, "")) || 0;
+    if (eco.length) { animarNumero("kpi-margen", margenPrevio, margen, function (v) { return "S/ " + v.toFixed(2) + (hayNulos ? "*" : ""); }); }
     else { elMargen.textContent = "—"; }
+    if (eco.length) { kpiNuevos["kpi-margen"] = "S/ " + margen.toFixed(2) + (hayNulos ? "*" : ""); }
     document.getElementById("economico").innerHTML = eco.length
       ? tabla(["Poza", "Estado", "Ingresos", "Costo", "Margen"], eco.map(function (e) {
           if (Number(e.ingresos) === 0 && e.costo_total !== null && Number(e.costo_total) === 0) {
@@ -617,10 +681,11 @@ async function cargarPanel() {
             "<td class=\"num " + mc + " " + mt + "\">" + soles(e.margen) + "</td></tr>";
         }), [2, 3, 4])
       : vacio("Sin movimientos económicos todavía: registra ventas y costos.");
-    var ret = await api("GET", "retiros?granja_id=" + g);
+    var ret = await pRet;
     var enRetiro = {};
     ret.forEach(function (r) { enRetiro[r.lote || r.poza || "?"] = 1; });
     animarNumero("kpi-retiro", document.getElementById("kpi-retiro").textContent || 0, Object.keys(enRetiro).length);
+    kpiNuevos["kpi-retiro"] = String(Object.keys(enRetiro).length);
     document.getElementById("retiros").innerHTML = ret.length
       ? tabla(["Poza / Ubicación", "Producto", "Quedan", "Fin"], ret.map(function (r) {
           var d = r.dias_restantes;
@@ -637,7 +702,7 @@ async function cargarPanel() {
       : vacio("Nada en retiro sanitario: se puede vender con normalidad.");
     document.getElementById("sub-retiro").textContent =
       ret.length ? "No vender todavía" : "Retiro cumplido · ya se puede vender";
-    var evoD = await cargarEvo(5);
+    var evoD = await pEvo;
     var dv = (evoD && evoD.poblacion.length > 1 && evoD.poblacion[0] > 0)
       ? Math.round(100 * (evoD.poblacion[evoD.poblacion.length - 1] - evoD.poblacion[0]) / evoD.poblacion[0])
       : null;
@@ -646,7 +711,8 @@ async function cargarPanel() {
     pintarDeltaTexto("delta-retiro", "Ver en Poza", true);
     pintarDeltaTexto("delta-margen", "Acumulado de las pozas");
     dibujarPanel(evoD);
-    dibujarNacimientos();
+    await pNac;
+    guardarKpi(kpiNuevos);
   } catch (e) { document.getElementById("partos").innerHTML = tarjeta("Error: " + e.message); }
 }
 
@@ -1946,10 +2012,12 @@ document.getElementById("registros").addEventListener("click", async function (e
   if (window.cuymaxAuthListo) {
     try { await window.cuymaxAuthListo; } catch (e) { /* sigue con lo que haya */ }
   }
-  await cargarAjustesGranja();
-  await cargarPanel();
-  llenarSelectsLotes();
-  cargarPozas();
+  /* Todo lo independiente arranca a la vez: así los KPI no esperan a los ajustes. */
+  var pAjustes = cargarAjustesGranja();
+  var pPanel = cargarPanel();
+  var pSelects = llenarSelectsLotes();
+  var pPozas = cargarPozas();
   pintarUbicaciones();
+  await Promise.all([pAjustes, pPanel, pSelects, pPozas]);
   generarAutomatico();
 })();

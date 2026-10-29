@@ -68,7 +68,9 @@ const SISTEMA =
 /* ---------- contexto de la granja ---------- */
 
 async function contextoGranja(granjaId) {
-  if (!Number.isInteger(granjaId) || granjaId <= 0) {
+  /* granja_id es el uid de la cuenta (texto). Antes se exigía un entero y por
+     eso el contexto llegaba siempre vacío. */
+  if (granjaId == null || granjaId === "") {
     return { lotes: [], hembras: [] };
   }
   const [lotesSnap, proxSnap] = await Promise.all([

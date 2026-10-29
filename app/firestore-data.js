@@ -7,6 +7,8 @@
 "use strict";
 
 var _fsdb = null;
+var _fsGranjaCache = null;
+var _fsPozasCache = null;
 
 function fsdb() {
   if (_fsdb) { return _fsdb; }
@@ -68,17 +70,31 @@ function fsDias(fecha) {
   return Math.round((d - hoy) / 86400000);
 }
 
-/* Todos los documentos de una colección que pertenecen a la cuenta activa. */
+/* Todos los documentos de una colección que pertenecen a la cuenta activa.
+   Si dos pantallas piden la misma colección al mismo tiempo (p. ej. el panel y
+   los selects), comparten una sola consulta: se evita duplicar la ida y vuelta. */
+var _fsEnCurso = {};
+
 async function fsTodos(nombre) {
   var g = fsGranja();
-  var snap = await fsdb().collection(nombre).where("granja_id", "==", g).get();
-  var filas = [];
-  snap.forEach(function (d) {
-    var x = d.data() || {};
-    x.__id = d.id;
-    filas.push(x);
-  });
-  return filas;
+  var clave = g + "|" + nombre;
+  if (_fsEnCurso[clave]) { return _fsEnCurso[clave].then(function (f) { return f.slice(); }); }
+  var consulta = (async function () {
+    var snap = await fsdb().collection(nombre).where("granja_id", "==", g).get();
+    var filas = [];
+    snap.forEach(function (d) {
+      var x = d.data() || {};
+      x.__id = d.id;
+      filas.push(x);
+    });
+    return filas;
+  })();
+  _fsEnCurso[clave] = consulta;
+  try {
+    return (await consulta).slice();
+  } finally {
+    delete _fsEnCurso[clave];
+  }
 }
 
 function fsLoteDoc(codigo) {
@@ -133,10 +149,19 @@ function fsLoteFila(x) {
 
 /* ---------- granja y precios ---------- */
 
-async function fsGranjaDoc() {
+async function fsGranjaDoc(recargar) {
   var g = fsGranja();
+  /* Los precios cambian poco: se guardan 2 minutos para no repetir la consulta
+     en cada pantalla (resumen, avisos, panel...). */
+  if (!recargar && _fsGranjaCache && _fsGranjaCache.g === g && (Date.now() - _fsGranjaCache.t) < 120000) {
+    return _fsGranjaCache.d;
+  }
   var snap = await fsdb().collection("granjas").where("granja_id", "==", g).limit(1).get();
-  if (!snap.empty) { return snap.docs[0].data() || {}; }
+  if (!snap.empty) {
+    var datos = snap.docs[0].data() || {};
+    _fsGranjaCache = { g: g, t: Date.now(), d: datos };
+    return datos;
+  }
   var nueva = {
     granja_id: g,
     nombre: "Mi granja",
@@ -144,6 +169,7 @@ async function fsGranjaDoc() {
     creado_en: new Date().toISOString()
   };
   await fsdb().collection("granjas").doc(g).set(nueva);
+  _fsGranjaCache = { g: g, t: Date.now(), d: nueva };
   return nueva;
 }
 
@@ -172,6 +198,7 @@ async function fsGuardarGranja(datos) {
     actualizado_en: new Date().toISOString()
   };
   await fsdb().collection("granjas").doc(g).set(nuevo, { merge: true });
+  _fsGranjaCache = { g: g, t: Date.now(), d: Object.assign({}, actual, nuevo) };
   return { ok: true, resumen: "Granja actualizada", detalle: nuevo.nombre };
 }
 
@@ -635,6 +662,7 @@ async function fsCrearPoza(datos) {
     granja_id: fsGranja(), codigo: cod, tipo: tipo, capacidad: cap,
     creado_en: new Date().toISOString()
   });
+  _fsPozasCache = null;
   return { ok: true, resumen: "ubicación " + cod + " agregada", detalle: "" };
 }
 
@@ -654,6 +682,7 @@ async function fsBorrarPoza(id) {
     enUso++;
   }
   await fsdb().collection("pozas").doc(doc.__id).delete();
+  _fsPozasCache = null;
   return {
     ok: true, resumen: "ubicación " + (doc.codigo || id) + " borrada",
     detalle: enUso ? enUso + " poza(s) quedaron sin ubicación." : ""
@@ -674,15 +703,18 @@ async function fsBorrarPartoProximo(id) {
 /* ---------- avisos: marcadores de atendido ---------- */
 
 async function fsAvisosActuales() {
+  /* Seis consultas en paralelo (antes ~3.4 s; ahora ~0.6 s). */
+  var cols = await Promise.all([
+    fsTodos("avisos_atendidos"), fsTodos("lotes"), fsTodos("partos_proximos"),
+    fsTodos("pesajes"), fsTodos("partos"), fsTodos("retiros")
+  ]);
   var atendidos = {};
-  (await fsTodos("avisos_atendidos")).forEach(function (x) {
-    atendidos[String(x.aviso_id || "")] = true;
-  });
-  var lotesA = (await fsTodos("lotes")).map(fsLoteFila);
-  var proxA = await fsTodos("partos_proximos");
-  var pesA = await fsTodos("pesajes");
-  var partosA = await fsTodos("partos");
-  var retirosA = await fsTodos("retiros");
+  cols[0].forEach(function (x) { atendidos[String(x.aviso_id || "")] = true; });
+  var lotesA = cols[1].map(fsLoteFila);
+  var proxA = cols[2];
+  var pesA = cols[3];
+  var partosA = cols[4];
+  var retirosA = cols[5];
   var ultimos = {};
   pesA.forEach(function (x) {
     var cod = fsUp(x.lote);
@@ -1074,10 +1106,13 @@ async function apiReal(metodo, ruta, datos) {
   }
 
   if (metodo === "GET" && base === "pozas") {
+    if (_fsPozasCache && (Date.now() - _fsPozasCache.t) < 60000) { return _fsPozasCache.d; }
     var pz = await fsTodos("pozas");
-    return pz.map(function (p) {
+    var listaPozas = pz.map(function (p) {
       return { id: p.codigo || p.__id, codigo: p.codigo || p.__id, tipo: p.tipo || "", capacidad: p.capacidad == null ? null : fsNum(p.capacidad) };
     }).sort(function (a, b) { return a.codigo < b.codigo ? -1 : 1; });
+    _fsPozasCache = { t: Date.now(), d: listaPozas };
+    return listaPozas;
   }
 
   if (metodo === "POST" && base === "pozas") { return fsCrearPoza(datos || {}); }
@@ -1100,9 +1135,11 @@ async function apiReal(metodo, ruta, datos) {
   if (metodo === "GET" && base === "resumen-economico") {
     var pr = fsPreciosDe(await fsGranjaDoc());
     if (!pr) { return []; }
-    var lotesEco = (await fsTodos("lotes")).map(fsLoteFila);
-    var consumos = await fsTodos("consumo_alimento");
-    var ventas = await fsTodos("ventas");
+    /* Las tres consultas van en paralelo: antes se sumaban ~3 idas y vueltas. */
+    var tres = await Promise.all([fsTodos("lotes"), fsTodos("consumo_alimento"), fsTodos("ventas")]);
+    var lotesEco = tres[0].map(fsLoteFila);
+    var consumos = tres[1];
+    var ventas = tres[2];
     return lotesEco.map(function (l) {
       var kgBal = 0, kgForr = 0, kgSin = 0;
       consumos.forEach(function (c) {
@@ -1136,10 +1173,11 @@ async function apiReal(metodo, ruta, datos) {
     var semanas = 5;
     var m = String(ruta || "").match(/semanas=(\d+)/);
     if (m) { semanas = Math.max(1, Math.min(parseInt(m[1], 10) || 5, 26)); }
-    var lotesE = (await fsTodos("lotes")).map(fsLoteFila);
-    var morts = await fsTodos("mortalidad");
-    var ventasE = await fsTodos("ventas");
-    var faenasE = await fsTodos("faenas");
+    var cuatro = await Promise.all([fsTodos("lotes"), fsTodos("mortalidad"), fsTodos("ventas"), fsTodos("faenas")]);
+    var lotesE = cuatro[0].map(fsLoteFila);
+    var morts = cuatro[1];
+    var ventasE = cuatro[2];
+    var faenasE = cuatro[3];
     var salida = [];
     for (var i = semanas - 1; i >= 0; i--) {
       var corte = new Date();
@@ -1176,8 +1214,9 @@ async function apiReal(metodo, ruta, datos) {
   }
 
   if (metodo === "GET" && base === "nacimientos-salidas") {
-    var nac = await fsTodos("partos");
-    var ventasMes = await fsTodos("ventas");
+    var dos = await Promise.all([fsTodos("partos"), fsTodos("ventas")]);
+    var nac = dos[0];
+    var ventasMes = dos[1];
     var meses = [];
     var ahora = new Date();
     for (var k = 7; k >= 0; k--) {
@@ -1200,36 +1239,41 @@ async function apiReal(metodo, ruta, datos) {
     var lm = String(ruta || "").match(/limite=(\d+)/);
     if (lm) { limite = Math.max(1, Math.min(parseInt(lm[1], 10) || 15, 100)); }
     var todo = [];
-    (await fsTodos("pesajes")).forEach(function (x) {
+    /* Ocho colecciones en paralelo: antes eran ~8 idas y vueltas seguidas. */
+    var cols = await Promise.all([
+      fsTodos("pesajes"), fsTodos("mortalidad"), fsTodos("consumo_alimento"), fsTodos("partos"),
+      fsTodos("destetes"), fsTodos("ventas"), fsTodos("faenas"), fsTodos("retiros")
+    ]);
+    cols[0].forEach(function (x) {
       todo.push({ tipo: "peso", id: x.__id, fecha: String(x.fecha || "").slice(0, 10), lote: x.lote || "", hembra: null,
         detalle: "Peso " + fsNum(x.peso_promedio_g) + " g (muestra " + fsNum(x.animales_pesados) + ")" });
     });
-    (await fsTodos("mortalidad")).forEach(function (x) {
+    cols[1].forEach(function (x) {
       todo.push({ tipo: "muerte", id: x.__id, fecha: String(x.fecha || "").slice(0, 10), lote: x.lote || "", hembra: null,
         detalle: fsNum(x.cantidad) + " muerte(s)" + (x.causa ? " · " + x.causa : "") });
     });
-    (await fsTodos("consumo_alimento")).forEach(function (x) {
+    cols[2].forEach(function (x) {
       todo.push({ tipo: "alimento", id: x.__id, fecha: String(x.fecha || "").slice(0, 10), lote: x.lote || "", hembra: null,
         detalle: fsNum(x.kg) + " kg de " + (x.tipo || "") });
     });
-    (await fsTodos("partos")).forEach(function (x) {
+    cols[3].forEach(function (x) {
       todo.push({ tipo: "parto", id: x.__id, fecha: String(x.fecha || "").slice(0, 10), lote: null, hembra: x.hembra || "",
         detalle: fsNum(x.nacidos_vivos) + " vivos, " + fsNum(x.nacidos_muertos) + " muertos" });
     });
-    (await fsTodos("destetes")).forEach(function (x) {
+    cols[4].forEach(function (x) {
       todo.push({ tipo: "destete", id: x.__id, fecha: String(x.fecha || "").slice(0, 10), lote: x.poza_destino || null, hembra: x.hembra || "",
         detalle: fsNum(x.cantidad) + " crías destetadas a " + (x.poza_destino || "") });
     });
-    (await fsTodos("ventas")).forEach(function (x) {
+    cols[5].forEach(function (x) {
       var total = fsNum(x.cantidad) * fsNum(x.precio_unitario);
       todo.push({ tipo: "venta", id: x.__id, fecha: String(x.fecha || "").slice(0, 10), lote: x.lote || "", hembra: null,
         detalle: fsNum(x.cantidad) + " vendidos · S/ " + total.toFixed(2) });
     });
-    (await fsTodos("faenas")).forEach(function (x) {
+    cols[6].forEach(function (x) {
       todo.push({ tipo: "faena", id: x.__id, fecha: String(x.fecha || "").slice(0, 10), lote: x.lote || "", hembra: null,
         detalle: fsNum(x.cantidad) + " faenados" });
     });
-    (await fsTodos("retiros")).forEach(function (x) {
+    cols[7].forEach(function (x) {
       todo.push({ tipo: "retiro", id: x.__id, fecha: String(x.fecha_inicio || "").slice(0, 10), lote: x.lote || "", hembra: null,
         detalle: (x.producto || "") + " · " + fsNum(x.dias) + " días de retiro" });
     });

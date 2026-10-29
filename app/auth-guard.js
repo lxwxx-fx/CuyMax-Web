@@ -97,10 +97,14 @@
     var nombre = user.displayName || user.email || "Sesión activa";
     try { localStorage.setItem("cuymax_user", nombre); } catch (e) { /* sin almacenamiento */ }
     pintarUsuario(nombre);
+    /* Firestore autentica con la sesión de Firebase por su cuenta; el token
+       guardado solo lo usa el backend local. Se pide en segundo plano para no
+       retrasar la carga del panel (a veces tarda ~1 s en renovarse). */
     user.getIdToken().then(function (t) {
       try { localStorage.setItem("cuymax_token", t); } catch (e) { /* sin almacenamiento */ }
     }).catch(function () {
       /* Si falla el token, Firestore dará el error concreto. */
-    }).then(marcarListo);
+    });
+    marcarListo();
   });
 })();
