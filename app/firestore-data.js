@@ -10,6 +10,52 @@ var _fsdb = null;
 var _fsGranjaCache = null;
 var _fsPozasCache = null;
 
+/* ---------- ¿de verdad hay conexión? ----------
+   navigator.onLine no sirve para esto: en un wifi sin internet, o con datos
+   móviles que se cayeron sin cambiar de red, el navegador sigue diciendo que sí.
+   Firestore sí lo sabe, porque intenta hablar con el servidor en cada lectura y
+   avisa de dónde salió el resultado (metadata.fromCache). De ahí sale el estado
+   real, que app.js usa para la insignia «Sin conexión». */
+window.cuymaxRed = window.cuymaxRed || {
+  sinRed: false,
+  oyentes: [],
+  marcar: function (sin) {
+    sin = !!sin;
+    if (this.sinRed === sin) { return; }
+    this.sinRed = sin;
+    for (var i = 0; i < this.oyentes.length; i++) {
+      try { this.oyentes[i](sin); } catch (e) { /* un oyente roto no frena al resto */ }
+    }
+  },
+  alCambiar: function (f) {
+    if (typeof f === "function") { this.oyentes.push(f); }
+  }
+};
+
+/* Marca el estado a partir de una respuesta de Firestore. */
+function fsRevisarRed(snap) {
+  try {
+    if (snap && snap.metadata && typeof snap.metadata.fromCache === "boolean") {
+      window.cuymaxRed.marcar(snap.metadata.fromCache);
+    }
+  } catch (e) { /* si el SDK cambia, se sigue sin este aviso */ }
+}
+
+/* Toda lectura pasa por aquí: así el estado de la conexión se actualiza con
+   cada consulta, sin depender del navegador. Si la consulta falla porque no se
+   pudo llegar al servidor, también se marca. */
+async function fsLeer(consulta) {
+  try {
+    var snap = await consulta.get();
+    fsRevisarRed(snap);
+    return snap;
+  } catch (e) {
+    var cod = (e && e.code) || "";
+    if (cod === "unavailable" || cod === "deadline-exceeded") { window.cuymaxRed.marcar(true); }
+    throw e;
+  }
+}
+
 function fsdb() {
   if (_fsdb) { return _fsdb; }
   if (typeof firebase === "undefined" || !firebase.firestore) {
@@ -97,7 +143,7 @@ async function fsTodos(nombre) {
   var clave = g + "|" + nombre;
   if (_fsEnCurso[clave]) { return _fsEnCurso[clave].then(function (f) { return f.slice(); }); }
   var consulta = (async function () {
-    var snap = await fsdb().collection(nombre).where("granja_id", "==", g).get();
+    var snap = await fsLeer(fsdb().collection(nombre).where("granja_id", "==", g));
     var filas = [];
     snap.forEach(function (d) {
       var x = d.data() || {};
@@ -129,11 +175,10 @@ function fsLoteEsDeGranja(x) { return fsEsDeGranja(x); }
 async function fsLoteActual(codigo) {
   var cod = fsUp(codigo);
   if (!cod) { return null; }
-  var snap = await fsdb().collection("lotes")
+  var snap = await fsLeer(fsdb().collection("lotes")
     .where("granja_id", "==", fsGranja())
     .where("codigo", "==", cod)
-    .limit(1)
-    .get();
+    .limit(1));
   if (snap.empty) { return null; }
   var doc = snap.docs[0];
   return { ref: doc.ref, snap: doc, data: doc.data() || {} };
@@ -173,7 +218,7 @@ async function fsGranjaDoc(recargar) {
   if (!recargar && _fsGranjaCache && _fsGranjaCache.g === g && (Date.now() - _fsGranjaCache.t) < 120000) {
     return _fsGranjaCache.d;
   }
-  var snap = await fsdb().collection("granjas").where("granja_id", "==", g).limit(1).get();
+  var snap = await fsLeer(fsdb().collection("granjas").where("granja_id", "==", g).limit(1));
   if (!snap.empty) {
     var datos = snap.docs[0].data() || {};
     _fsGranjaCache = { g: g, t: Date.now(), d: datos };

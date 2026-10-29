@@ -2288,13 +2288,20 @@ document.getElementById("registros").addEventListener("click", async function (e
    token antes de pedir datos; en local/demo arranca de inmediato. */
 /* ---------- instalación, actualización y estado de la conexión ---------- */
 
-/* Sin conexión: insignia en la barra superior y aviso al cambiar de estado. */
+/* Sin conexión: insignia en la barra superior y aviso al cambiar de estado.
+   Se combinan dos señales: lo que dice el navegador (navigator.onLine) y lo que
+   responde Firestore en cada lectura (window.cuymaxRed, en firestore-data.js).
+   La segunda es la buena: el navegador puede decir «en línea» con un wifi que no
+   tiene internet, y entonces las lecturas vienen de la copia guardada. */
 (function avisoConexion() {
   var badge = document.getElementById("badge-offline");
   if (!badge) { return; }
   var anterior = null;
+  function sinConexion() {
+    return !navigator.onLine || !!(window.cuymaxRed && window.cuymaxRed.sinRed);
+  }
   function pintar() {
-    var sin = !navigator.onLine;
+    var sin = sinConexion();
     badge.classList.toggle("oculto", !sin);
     if (anterior !== null && anterior !== sin) {
       if (sin) {
@@ -2305,8 +2312,14 @@ document.getElementById("registros").addEventListener("click", async function (e
     }
     anterior = sin;
   }
-  window.addEventListener("online", pintar);
+  window.addEventListener("online", function () {
+    /* Al volver la red se limpia el aviso; si Firestore sigue sin alcanzar el
+       servidor, la próxima lectura lo vuelve a marcar. */
+    if (window.cuymaxRed) { window.cuymaxRed.marcar(false); }
+    pintar();
+  });
   window.addEventListener("offline", pintar);
+  if (window.cuymaxRed && window.cuymaxRed.alCambiar) { window.cuymaxRed.alCambiar(pintar); }
   pintar();
 })();
 
