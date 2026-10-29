@@ -25,6 +25,9 @@ __pycache__/
 *.pyc
 *.pyo
 
+# Documentacion personal (informes, manuales, propuestas). No se versiona.
+docs/
+
 # Registros
 *.log
 
