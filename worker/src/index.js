@@ -301,6 +301,277 @@ async function interpretar(mensaje, ctx, env) {
   return normalizar(extraerJson(contenido));
 }
 
+/* ---------- Web Push: aviso al celular ----------
+ *
+ * El teléfono se suscribe desde Ajustes; la suscripción se guarda en KV junto
+ * con un resumen del trabajo pendiente que el propio panel escribe cada vez que
+ * se abre. El cron corre cada hora y solo avisa a quien pidió esa hora y tiene
+ * algo pendiente: así no se molesta con avisos vacíos.
+ *
+ * El envío usa el estándar Web Push: firma VAPID (ES256) y cifrado del payload
+ * (RFC 8291, aes128gcm). La clave privada VAPID vive como secreto VAPID_JWK.
+ */
+
+const TTL_SEGUNDOS = 12 * 3600;      // 12 h: si no llega, ya no sirve
+const SUB_CLAVE_PREFIJO = "sub-";
+const MAX_RESUMEN = 160;
+const DIFERENCIA_LIMA = 5 * 3600 * 1000;   // UTC-5, sin horario de verano
+
+function b64uAb(s) {
+  s = String(s || "").replace(/-/g, "+").replace(/_/g, "/");
+  while (s.length % 4) { s += "="; }
+  const bin = atob(s);
+  const out = new Uint8Array(bin.length);
+  for (let i = 0; i < bin.length; i++) { out[i] = bin.charCodeAt(i); }
+  return out;
+}
+
+function abB64u(buf) {
+  const b = new Uint8Array(buf);
+  let s = "";
+  for (let i = 0; i < b.length; i++) { s += String.fromCharCode(b[i]); }
+  return btoa(s).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
+}
+
+function textoAb(s) {
+  return new TextEncoder().encode(s);
+}
+
+function unir(...trozos) {
+  const total = trozos.reduce((n, t) => n + t.length, 0);
+  const out = new Uint8Array(total);
+  let i = 0;
+  for (const t of trozos) { out.set(t, i); i += t.length; }
+  return out;
+}
+
+async function hkdf(salto, ikm, info, bytes) {
+  const k = await crypto.subtle.importKey("raw", ikm, "HKDF", false, ["deriveBits"]);
+  return crypto.subtle.deriveBits(
+    { name: "HKDF", hash: "SHA-256", salt: salto, info: info },
+    k, bytes * 8
+  );
+}
+
+/* Firma VAPID: un JWT ES256 con la clave privada de la pareja VAPID. */
+async function vapidJwt(audiencia, env) {
+  const jwk = JSON.parse(env.VAPID_JWK || "null");
+  if (!jwk || !jwk.d) { throw new Error("Falta el secreto VAPID_JWK en el Worker."); }
+  const clave = await crypto.subtle.importKey(
+    "jwk", jwk,
+    { name: "ECDSA", namedCurve: "P-256" },
+    false, ["sign"]
+  );
+  const ahora = Math.floor(Date.now() / 1000);
+  const cabecera = abB64u(textoAb(JSON.stringify({ typ: "JWT", alg: "ES256" })));
+  const cuerpo = abB64u(textoAb(JSON.stringify({
+    aud: audiencia,
+    exp: ahora + 12 * 3600,
+    sub: "mailto:roggergonzales18@gmail.com"
+  })));
+  const sinFirma = cabecera + "." + cuerpo;
+  const firma = await crypto.subtle.sign(
+    { name: "ECDSA", hash: "SHA-256" },
+    clave, textoAb(sinFirma)
+  );
+  return sinFirma + "." + abB64u(firma);
+}
+
+/* Cifra el payload con las claves de la suscripción (RFC 8291, aes128gcm). */
+async function cifrarPush(carga, sub) {
+  const clavePublicaUa = b64uAb(sub.keys && sub.keys.p256dh);
+  const secretoAuth = b64uAb(sub.keys && sub.keys.auth);
+  if (clavePublicaUa.length !== 65 || secretoAuth.length < 16) {
+    throw new Error("Suscripción incompleta.");
+  }
+
+  const par = await crypto.subtle.generateKey({ name: "ECDH", namedCurve: "P-256" }, true, ["deriveBits"]);
+  const clavePublicaAs = new Uint8Array(await crypto.subtle.exportKey("raw", par.publicKey));
+  const claveUa = await crypto.subtle.importKey(
+    "raw", clavePublicaUa, { name: "ECDH", namedCurve: "P-256" }, false, []
+  );
+  const compartido = await crypto.subtle.deriveBits(
+    { name: "ECDH", public: claveUa }, par.privateKey, 256
+  );
+
+  const infoIkm = unir(textoAb("WebPush: info"), new Uint8Array([0]), clavePublicaUa, clavePublicaAs);
+  const ikm = await hkdf(secretoAuth, compartido, infoIkm, 32);
+
+  const salto = crypto.getRandomValues(new Uint8Array(16));
+  const cek = await hkdf(salto, ikm, textoAb("Content-Encoding: aes128gcm\u0000"), 16);
+  const nonce = await hkdf(salto, ikm, textoAb("Content-Encoding: nonce\u0000"), 12);
+
+  const llano = unir(textoAb(carga), new Uint8Array([2]));   // 0x02: último registro
+  const aes = await crypto.subtle.importKey("raw", cek, "AES-GCM", false, ["encrypt"]);
+  const cifrado = new Uint8Array(await crypto.subtle.encrypt(
+    { name: "AES-GCM", iv: nonce, tagLength: 128 }, aes, llano
+  ));
+
+  const cabecera = new Uint8Array(21 + clavePublicaAs.length);
+  cabecera.set(salto, 0);
+  new DataView(cabecera.buffer).setUint32(16, 4096);          // tamaño de registro
+  cabecera[20] = clavePublicaAs.length;                       // idlen
+  cabecera.set(clavePublicaAs, 21);                           // clave pública efímera
+  return unir(cabecera, cifrado);
+}
+
+/* Envía un push a una suscripción. Devuelve el estado HTTP del servicio. */
+async function enviarPush(sub, carga, env) {
+  const aud = new URL(sub.endpoint).origin;
+  const jwt = await vapidJwt(aud, env);
+  const cabeceras = {
+    TTL: String(TTL_SEGUNDOS),
+    Urgency: "high",
+    Authorization: "vapid t=" + jwt + ", k=" + env.VAPID_PUBLIC
+  };
+  const init = { method: "POST", headers: cabeceras };
+  if (carga) {
+    cabeceras["Content-Type"] = "application/octet-stream";
+    cabeceras["Content-Encoding"] = "aes128gcm";
+    init.body = carga;
+  }
+  const r = await fetch(sub.endpoint, init);
+  return r.status;
+}
+
+async function claveSub(endpoint) {
+  const h = await crypto.subtle.digest("SHA-256", textoAb(endpoint));
+  return SUB_CLAVE_PREFIJO + abB64u(h);
+}
+
+async function guardarSub(uid, sub, resumen, hora, env) {
+  const clave = await claveSub(sub.endpoint);
+  const registro = {
+    granja: uid,
+    endpoint: sub.endpoint,
+    keys: sub.keys,
+    resumen: texto(resumen, MAX_RESUMEN),
+    hora: Math.min(23, Math.max(0, Number(hora) || 0)),
+    actualizado: new Date().toISOString()
+  };
+  /* Si la suscripción ya existía de otra cuenta, se respeta al dueño original. */
+  const previo = await env.AVISOS_KV.get(clave);
+  if (previo) {
+    try { if (JSON.parse(previo).granja !== uid) { return false; } } catch (e) { /* se sobreescribe */ }
+  }
+  await env.AVISOS_KV.put(clave, JSON.stringify(registro));
+  return true;
+}
+
+/* Avisos de una hora dada (hora local de Lima). */
+async function enviarProgramados(env) {
+  if (!env.VAPID_JWK || !env.VAPID_PUBLIC) { return { enviados: 0, motivo: "faltan claves VAPID" }; }
+  const hora = new Date(Date.now() - DIFERENCIA_LIMA).getUTCHours();
+  let enviados = 0, borradas = 0, errores = 0;
+  let cursor;
+  do {
+    const pagina = await env.AVISOS_KV.list({ cursor });
+    cursor = undefined;
+    for (const k of pagina.keys) {
+      if (!k.name.startsWith(SUB_CLAVE_PREFIJO)) { continue; }
+      const bruto = await env.AVISOS_KV.get(k.name);
+      if (!bruto) { continue; }
+      let reg;
+      try { reg = JSON.parse(bruto); } catch (e) { continue; }
+      if (Number(reg.hora) !== hora) { continue; }
+      if (!reg.resumen) { continue; }
+      try {
+        const carga = await cifrarPush(JSON.stringify({ t: reg.resumen }), reg);
+        const estado = await enviarPush(reg, carga, env);
+        if (estado >= 200 && estado < 300) { enviados += 1; }
+        else if (estado === 404 || estado === 410) { await env.AVISOS_KV.delete(k.name); borradas += 1; }
+        else { errores += 1; }
+      } catch (e) { errores += 1; }
+    }
+    if (pagina.list_complete === false) { cursor = pagina.cursor; }
+  } while (cursor);
+  return { enviados: enviados, borradas: borradas, errores: errores, hora: hora };
+}
+
+/* Ruta POST /suscribir — guarda o actualiza la suscripción del teléfono. */
+async function suscribir(peticion, env, origen) {
+  if (!env.AVISOS_KV) { return json({ error: "El Worker no tiene KV configurado." }, 500, env, origen); }
+  const idToken = tokenDeCabecera(peticion);
+  const uid = await uidDeToken(idToken, env);
+  if (!uid) { return json({ error: "La sesión no es válida. Vuelve a iniciar sesión." }, 401, env, origen); }
+
+  let cuerpo;
+  try { cuerpo = await peticion.json(); } catch (e) { return json({ error: "El cuerpo debe ser JSON." }, 400, env, origen); }
+  const sub = cuerpo && cuerpo.sub;
+  if (!sub || !sub.endpoint || !sub.keys || !sub.keys.p256dh || !sub.keys.auth) {
+    return json({ error: "Suscripción incompleta." }, 400, env, origen);
+  }
+  if (String(sub.endpoint).indexOf("https://") !== 0) {
+    return json({ error: "La suscripción debe usar HTTPS." }, 400, env, origen);
+  }
+  const ok = await guardarSub(uid, sub, cuerpo.resumen, cuerpo.hora, env);
+  if (!ok) { return json({ error: "Esa suscripción pertenece a otra cuenta." }, 403, env, origen); }
+  return json({ ok: true }, 200, env, origen);
+}
+
+/* Ruta POST /baja — borra la suscripción del teléfono que pide darse de baja. */
+async function baja(peticion, env, origen) {
+  if (!env.AVISOS_KV) { return json({ error: "El Worker no tiene KV configurado." }, 500, env, origen); }
+  const idToken = tokenDeCabecera(peticion);
+  const uid = await uidDeToken(idToken, env);
+  if (!uid) { return json({ error: "La sesión no es válida. Vuelve a iniciar sesión." }, 401, env, origen); }
+
+  let cuerpo;
+  try { cuerpo = await peticion.json(); } catch (e) { return json({ error: "El cuerpo debe ser JSON." }, 400, env, origen); }
+  if (!cuerpo || !cuerpo.endpoint) { return json({ error: "Falta el endpoint." }, 400, env, origen); }
+
+  const clave = await claveSub(cuerpo.endpoint);
+  const bruto = await env.AVISOS_KV.get(clave);
+  if (!bruto) { return json({ ok: true }, 200, env, origen); }
+  try {
+    if (JSON.parse(bruto).granja !== uid) {
+      return json({ error: "Esa suscripción pertenece a otra cuenta." }, 403, env, origen);
+    }
+  } catch (e) { /* una entrada rota se borra igual */ }
+  await env.AVISOS_KV.delete(clave);
+  return json({ ok: true }, 200, env, origen);
+}
+
+/* Ruta POST /avisos — envía un push de prueba a quien lo pide (desde Ajustes). */
+async function avisoPrueba(peticion, env, origen) {
+  if (!env.AVISOS_KV) { return json({ error: "El Worker no tiene KV configurado." }, 500, env, origen); }
+  if (!env.VAPID_JWK) { return json({ error: "Falta el secreto VAPID_JWK en el Worker." }, 500, env, origen); }
+  const idToken = tokenDeCabecera(peticion);
+  const uid = await uidDeToken(idToken, env);
+  if (!uid) { return json({ error: "La sesión no es válida. Vuelve a iniciar sesión." }, 401, env, origen); }
+
+  let cuerpo = {};
+  try { cuerpo = await peticion.json(); } catch (e) { cuerpo = {}; }
+
+  const textoPrueba = texto(cuerpo.resumen, MAX_RESUMEN) || "Esto es una prueba del aviso. Si lo ves, tu celular ya está conectado.";
+  let enviados = 0;
+  let cursor;
+  do {
+    const pagina = await env.AVISOS_KV.list({ cursor });
+    cursor = undefined;
+    for (const k of pagina.keys) {
+      if (!k.name.startsWith(SUB_CLAVE_PREFIJO)) { continue; }
+      const bruto = await env.AVISOS_KV.get(k.name);
+      if (!bruto) { continue; }
+      let reg;
+      try { reg = JSON.parse(bruto); } catch (e) { continue; }
+      if (reg.granja !== uid) { continue; }
+      /* `plano: true` envía sin payload: sirve para distinguir un problema de
+         entrega de un problema de cifrado. */
+      const carga = cuerpo.plano ? null : await cifrarPush(JSON.stringify({ t: textoPrueba }), reg);
+      const estado = await enviarPush(reg, carga, env);
+      if (estado === 404 || estado === 410) { await env.AVISOS_KV.delete(k.name); }
+      else if (estado >= 200 && estado < 300) { enviados += 1; }
+    }
+    if (pagina.list_complete === false) { cursor = pagina.cursor; }
+  } while (cursor);
+
+  if (!enviados) {
+    return json({ error: "No encontré una suscripción activa de tu cuenta. Activa las notificaciones e inténtalo otra vez." }, 404, env, origen);
+  }
+  return json({ ok: true, enviados: enviados }, 200, env, origen);
+}
+
 /* ---------- rutas ---------- */
 
 async function asistente(peticion, env, origen) {
@@ -379,7 +650,7 @@ export default {
         ok: true,
         servicio: "cuymax-ia",
         modelo: env.MODELO_IA || "openai/gpt-oss-120b",
-        rutas: ["POST /asistente"]
+        rutas: ["POST /asistente", "POST /suscribir", "POST /baja", "POST /avisos"]
       }, 200, env, origen);
     }
 
@@ -387,6 +658,26 @@ export default {
       return asistente(peticion, env, origen);
     }
 
+    if (peticion.method === "POST" && url.pathname === "/suscribir") {
+      return suscribir(peticion, env, origen);
+    }
+
+    if (peticion.method === "POST" && url.pathname === "/baja") {
+      return baja(peticion, env, origen);
+    }
+
+    if (peticion.method === "POST" && url.pathname === "/avisos") {
+      return avisoPrueba(peticion, env, origen);
+    }
+
     return json({ error: "Ruta no encontrada." }, 404, env, origen);
+  },
+
+  /* Cron cada hora: avisa a los teléfonos cuya hora local es la elegida y que
+     tienen trabajo pendiente. */
+  async scheduled(evento, env, ctx) {
+    ctx.waitUntil(enviarProgramados(env).then(function (r) {
+      console.log("avisos programados:", JSON.stringify(r));
+    }));
   }
 };

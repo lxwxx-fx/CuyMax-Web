@@ -6,6 +6,17 @@
   "observability": {
     "enabled": true
   },
+  /* Aviso diario: se corre cada hora y solo se envía a los teléfonos cuya hora
+     local sea la que eligieron en Ajustes. Un solo cron, sin gasto extra. */
+  "triggers": {
+    "crons": ["0 * * * *"]
+  },
+  "kv_namespaces": [
+    {
+      "binding": "AVISOS_KV",
+      "id": "4ca8e2490d7a425eaa05846078e61ae3"
+    }
+  ],
   "vars": {
     "MODELO_IA": "openai/gpt-oss-120b",
     /* Modelo de reserva: se usa solo si el principal se queda sin cupo (429).
@@ -15,6 +26,9 @@
        No es un secreto: sirve solo para validar el ID token del usuario. */
     "FIREBASE_API_KEY": "AIzaSyCasoyb4QuLSwk_5092O0X7cXojg9Tgh3Y",
     "ALLOWED_ORIGINS": "https://cuymax-by-dc.web.app,https://cuymax-by-dc.firebaseapp.com,http://localhost:8000,http://127.0.0.1:8000",
+    /* Clave pública VAPID: firma los avisos que el Worker envía al celular.
+       Es pública por diseño; la privada vive como secreto VAPID_JWK. */
+    "VAPID_PUBLIC": "BExTcOOETRgrHMlsapl30Sxnu-MASS5vc47bjYZO-39z5k3495bWtvli8VXec_jrWajZY3-fAT_ntrUsVb9ceYo",
     "REQUIRE_AUTH": "true"
   }
 }

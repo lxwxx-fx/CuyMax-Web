@@ -11,9 +11,9 @@
 <link rel="preconnect" href="https://firestore.googleapis.com" crossorigin>
 <link rel="preconnect" href="https://identitytoolkit.googleapis.com" crossorigin>
 <!-- Tipografías propias: el panel abre sin internet y sin esperar a Google. -->
-<link rel="stylesheet" href="vendor/fonts/fuentes.css?v=50">
-<link rel="stylesheet" href="cuymax-theme.css?v=50">
-<link rel="stylesheet" href="styles.css?v=50">
+<link rel="stylesheet" href="vendor/fonts/fuentes.css?v=51">
+<link rel="stylesheet" href="cuymax-theme.css?v=51">
+<link rel="stylesheet" href="styles.css?v=51">
 <!-- iPhone: icono propio y apertura a pantalla completa al añadir a inicio. -->
 <link rel="apple-touch-icon" href="icono-180.png">
 <meta name="apple-mobile-web-app-capable" content="yes">
@@ -104,6 +104,18 @@
         <input id="cfg-forraje" type="number" step="any" min="0" inputmode="decimal" placeholder="Ej. 0.30">
         <label for="cfg-cuy">Cuy (S/ por unidad)</label>
         <input id="cfg-cuy" type="number" step="any" min="0" inputmode="decimal" placeholder="Ej. 24">
+        <div id="cfg-push-wrap" class="oculto">
+          <p class="mini muted" style="margin:10px 0 2px;">Avisos al celular</p>
+          <p class="mini muted" id="cfg-push-estado" style="margin:0 0 6px;">Desactivado: tu celular no recibe avisos.</p>
+          <label for="cfg-push-hora" id="lbl-push-hora" class="oculto">Hora del aviso diario</label>
+          <select id="cfg-push-hora" class="oculto" aria-label="Hora del aviso diario"></select>
+          <div class="actions" style="margin:8px 0 0; flex-wrap:wrap; gap:8px;">
+            <button id="btn-push-activar" type="button" class="btn primary">Activar notificaciones</button>
+            <button id="btn-push-prueba" type="button" class="btn oculto">Enviar una prueba</button>
+            <button id="btn-push-desactivar" type="button" class="btn oculto">Desactivar</button>
+          </div>
+          <p class="mini muted" style="margin:6px 0 0;">El aviso llega a la hora elegida solo si hay trabajo pendiente (partos próximos, destetes, pesajes o retiros).</p>
+        </div>
         <div class="actions">
           <button id="cfg-guardar" type="button" class="btn primary">Guardar</button>
           <button id="btn-cerrar-ajustes" type="button" class="btn">Cerrar</button>
@@ -585,15 +597,15 @@
 
 <script src="vendor/chart.umd.min.js"></script>
 <!-- SDK de Firebase servido desde el propio dominio: así el panel abre sin internet. -->
-<script src="vendor/firebase/firebase-app-compat.js?v=50"></script>
-<script src="vendor/firebase/firebase-auth-compat.js?v=50"></script>
-<script src="vendor/firebase/firebase-firestore-compat.js?v=50"></script>
+<script src="vendor/firebase/firebase-app-compat.js?v=51"></script>
+<script src="vendor/firebase/firebase-auth-compat.js?v=51"></script>
+<script src="vendor/firebase/firebase-firestore-compat.js?v=51"></script>
 <script src="../firebase-config.js"></script>
-<script src="mock-data.js?v=50"></script>
-<script src="ia-asistente.js?v=50"></script>
-<script src="firestore-data.js?v=50"></script>
-<script src="auth-guard.js?v=50"></script>
-<script src="app.js?v=50"></script>
+<script src="mock-data.js?v=51"></script>
+<script src="ia-asistente.js?v=51"></script>
+<script src="firestore-data.js?v=51"></script>
+<script src="auth-guard.js?v=51"></script>
+<script src="app.js?v=51"></script>
 <script>
 if ("serviceWorker" in navigator) {
   window.addEventListener("load", function () {

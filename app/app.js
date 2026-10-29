@@ -386,6 +386,7 @@ document.getElementById("btn-ajustes").addEventListener("click", function () {
     document.getElementById("cfg-granja").value = cfg().granja;
     document.getElementById("cfg-clave").value = cfg().clave;
   }
+  pintarPush();
   cargarAjustesGranja();
 });
 
@@ -2065,6 +2066,8 @@ async function cargarAvisos() {
     var caja = document.getElementById("avisos-atendidos");
     if (caja) { caja.innerHTML = '<p class="muted">No se pudieron cargar los avisos atendidos.</p>'; }
   }
+  /* Con los avisos en mano, se refresca el resumen que recibirá el celular. */
+  refrescarResumenPush();
 }
 
 /* ---------- asistente (chat) ---------- */
@@ -2286,6 +2289,219 @@ document.getElementById("registros").addEventListener("click", async function (e
 
 /* Arranque: en modo monitoreo espera a que Firebase restaure la sesión y el
    token antes de pedir datos; en local/demo arranca de inmediato. */
+/* ---------- avisos al celular (Web Push) ----------
+   Ajustes ofrece activar las notificaciones: el navegador pide permiso, se
+   suscribe y la suscripción se guarda en el Worker junto con un resumen del
+   trabajo pendiente. Cada vez que el panel carga los avisos actualiza ese
+   resumen (como mucho una vez cada 6 horas, para no gastar peticiones). El
+   cron del Worker avisa a la hora elegida solo si hay algo pendiente. */
+
+var VAPID_PUBLICA = (typeof CUYMAX_VAPID_PUBLIC === "string") ? CUYMAX_VAPID_PUBLIC : "";
+var LLAVE_PUSH = "cuymax_push_sub";
+var ESPERA_RESUMEN = 6 * 3600 * 1000;
+
+var PLURAL_AVISO = {
+  parto_proximo: ["parto próximo", "partos próximos"],
+  destete: ["destete", "destetes"],
+  pesaje_pendiente: ["pesaje pendiente", "pesajes pendientes"],
+  retiro: ["fin de retiro", "fines de retiro"],
+  otra: ["otro aviso", "otros avisos"]
+};
+
+function subPushGuardada() {
+  try { return JSON.parse(localStorage.getItem(LLAVE_PUSH) || "null"); }
+  catch (e) { return null; }
+}
+
+async function tokenSesion() {
+  try {
+    var u = (typeof firebase !== "undefined" && firebase.auth) ? firebase.auth().currentUser : null;
+    return u ? await u.getIdToken() : null;
+  } catch (e) { return null; }
+}
+
+function urlWorkerAvisos() {
+  var base = (typeof CUYMAX_IA_URL === "string") ? CUYMAX_IA_URL : "";
+  return /^https:\/\//.test(base) ? String(base).replace(/\/+$/, "") : "";
+}
+
+/* Texto corto con lo pendiente: "" si no hay nada (y entonces no se avisa). */
+function resumenAvisosPush() {
+  var pend = (cacheAvisos || []).filter(function (x) { return (x.estado || "pendiente") === "pendiente"; });
+  if (!pend.length) { return ""; }
+  var cuenta = {};
+  pend.forEach(function (x) {
+    var t = PLURAL_AVISO[x.tipo] ? x.tipo : "otra";
+    cuenta[t] = (cuenta[t] || 0) + 1;
+  });
+  var partes = Object.keys(cuenta).map(function (t) {
+    var p = PLURAL_AVISO[t];
+    return cuenta[t] + " " + (cuenta[t] === 1 ? p[0] : p[1]);
+  });
+  var lista = partes.length > 1
+    ? partes.slice(0, -1).join(", ") + " y " + partes[partes.length - 1]
+    : partes[0];
+  return "Tienes " + pend.length + (pend.length === 1 ? " aviso" : " avisos") + ": " + lista + ".";
+}
+
+function pintarPush() {
+  var wrap = document.getElementById("cfg-push-wrap");
+  if (!wrap) { return; }
+  var real = (typeof MODO_REAL !== "undefined" && MODO_REAL);
+  var hayUrl = !!urlWorkerAvisos() && !!VAPID_PUBLICA;
+  var permiso = (typeof Notification !== "undefined") ? Notification.permission : "denied";
+  wrap.classList.toggle("oculto", !real || !hayUrl);
+  if (!real || !hayUrl) { return; }
+
+  var guarda = subPushGuardada();
+  var activa = !!(guarda && guarda.endpoint && permiso === "granted");
+  document.getElementById("btn-push-activar").classList.toggle("oculto", activa);
+  document.getElementById("btn-push-prueba").classList.toggle("oculto", !activa);
+  document.getElementById("btn-push-desactivar").classList.toggle("oculto", !activa);
+  var bloqueHora = document.getElementById("lbl-push-hora");
+  var horaSel = document.getElementById("cfg-push-hora");
+  bloqueHora.classList.toggle("oculto", !activa);
+  horaSel.classList.toggle("oculto", !activa);
+
+  var estado = document.getElementById("cfg-push-estado");
+  if (!activa) {
+    estado.textContent = permiso === "denied"
+      ? "Bloqueadas: el navegador tiene las notificaciones prohibidas para este sitio. Actívalas en los ajustes del navegador."
+      : "Desactivado: tu celular no recibe avisos.";
+    return;
+  }
+  var h = Number(guarda && guarda.hora);
+  estado.textContent = "Activadas. El aviso llega a la hora elegida, si hay trabajo pendiente.";
+  if (!horaSel.options.length) {
+    for (var i = 5; i <= 21; i++) {
+      var o = document.createElement("option");
+      o.value = String(i);
+      o.textContent = (i < 10 ? "0" + i : i) + ":00";
+      horaSel.appendChild(o);
+    }
+  }
+  horaSel.value = String(isNaN(h) ? 7 : h);
+}
+
+async function avisosPost(ruta, cuerpo) {
+  var token = await tokenSesion();
+  if (!token) { throw new Error("Tu sesión no está activa. Vuelve a iniciar sesión."); }
+  var r = await fetch(urlWorkerAvisos() + ruta, {
+    method: "POST",
+    headers: { "Content-Type": "application/json", Authorization: "Bearer " + token },
+    body: JSON.stringify(cuerpo)
+  });
+  var j = null;
+  try { j = await r.json(); } catch (e) { j = null; }
+  if (!r.ok) { throw new Error((j && j.error) || ("Error " + r.status)); }
+  return j;
+}
+
+async function subirSubPush(sub, resumen, hora) {
+  await avisosPost("/suscribir", {
+    sub: { endpoint: sub.endpoint, keys: sub.keys },
+    resumen: resumen,
+    hora: hora
+  });
+}
+
+/* Refresca el resumen guardado en el Worker. Se llama tras cargar los avisos. */
+async function refrescarResumenPush(forzar) {
+  try {
+    var guarda = subPushGuardada();
+    if (!guarda || !guarda.endpoint) { return; }
+    if (typeof Notification === "undefined" || Notification.permission !== "granted") { return; }
+    var resumen = resumenAvisosPush();
+    var hace = Date.now() - (Number(guarda.cuando) || 0);
+    if (!forzar && resumen === guarda.resumen && hace < ESPERA_RESUMEN) { return; }
+    await subirSubPush({ endpoint: guarda.endpoint, keys: guarda.keys }, resumen, guarda.hora);
+    guarda.resumen = resumen;
+    guarda.cuando = Date.now();
+    localStorage.setItem(LLAVE_PUSH, JSON.stringify(guarda));
+  } catch (e) { /* sin conexión o sin sesión: se reintenta en la próxima carga */ }
+}
+
+document.getElementById("btn-push-activar").addEventListener("click", async function () {
+  var btn = this;
+  if (!("PushManager" in window) || !("serviceWorker" in navigator)) {
+    showToast("Tu navegador no admite notificaciones.", "err");
+    return;
+  }
+  btn.disabled = true;
+  try {
+    var permiso = await Notification.requestPermission();
+    if (permiso !== "granted") {
+      showToast("No se activaron: el permiso quedó en «" + permiso + "».", "err");
+      pintarPush();
+      return;
+    }
+    var reg = await navigator.serviceWorker.ready;
+    var sub = await reg.pushManager.subscribe({
+      userVisibleOnly: true,
+      applicationServerKey: VAPID_PUBLICA
+    });
+    var hora = Number(document.getElementById("cfg-push-hora").value) || 7;
+    await subirSubPush(sub, resumenAvisosPush(), hora);
+    localStorage.setItem(LLAVE_PUSH, JSON.stringify({
+      endpoint: sub.endpoint, keys: sub.keys, hora: hora,
+      resumen: resumenAvisosPush(), cuando: Date.now()
+    }));
+    showToast("Listo: recibirás avisos en este celular", "ok");
+  } catch (e) {
+    showToast("No se pudieron activar: " + e.message, "err");
+  } finally {
+    btn.disabled = false;
+    pintarPush();
+  }
+});
+
+document.getElementById("cfg-push-hora").addEventListener("change", async function () {
+  var guarda = subPushGuardada();
+  if (!guarda || !guarda.endpoint) { return; }
+  var hora = Number(this.value) || 7;
+  try {
+    await subirSubPush({ endpoint: guarda.endpoint, keys: guarda.keys }, guarda.resumen, hora);
+    guarda.hora = hora;
+    localStorage.setItem(LLAVE_PUSH, JSON.stringify(guarda));
+    showToast("Aviso diario programado para las " + (hora < 10 ? "0" + hora : hora) + ":00", "ok");
+  } catch (e) {
+    showToast("No se pudo cambiar la hora: " + e.message, "err");
+  }
+});
+
+document.getElementById("btn-push-prueba").addEventListener("click", async function () {
+  var btn = this;
+  btn.disabled = true;
+  try {
+    await avisosPost("/avisos", { resumen: resumenAvisosPush() || undefined });
+    showToast("Enviado: mira la barra de notificaciones", "ok");
+  } catch (e) {
+    showToast("No se pudo enviar la prueba: " + e.message, "err");
+  } finally { btn.disabled = false; }
+});
+
+document.getElementById("btn-push-desactivar").addEventListener("click", async function () {
+  var guarda = subPushGuardada();
+  if (!guarda || !guarda.endpoint) { pintarPush(); return; }
+  try {
+    await avisosPost("/baja", { endpoint: guarda.endpoint });
+  } catch (e) { /* se da de baja igual en el teléfono */ }
+  try {
+    var reg = await navigator.serviceWorker.ready;
+    var sub = await reg.pushManager.getSubscription();
+    if (sub) { await sub.unsubscribe(); }
+  } catch (e2) { /* sin servicio worker igual se borra la marca local */ }
+  localStorage.removeItem(LLAVE_PUSH);
+  showToast("Notificaciones desactivadas", "ok");
+  pintarPush();
+});
+
+(function avisosPorCuenta() {
+  var real = (typeof MODO_REAL !== "undefined" && MODO_REAL);
+  if (!real) { return; }
+  pintarPush();
+})();
+
 /* ---------- instalación, actualización y estado de la conexión ---------- */
 
 /* Sin conexión: insignia en la barra superior y aviso al cambiar de estado.

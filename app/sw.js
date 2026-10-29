@@ -4,15 +4,15 @@
    Al publicar cambios se auto-actualiza sin cerrar pestañas (skipWaiting + claim).
    Los archivos locales llevan ?v= para que al subir una versión el navegador no
    reutilice una copia vieja de la caché HTTP (Firebase sirve los .js con max-age). */
-const CACHE = "cuymax-v50";
-const SHELL = ["index.html", "cuymax-theme.css?v=50", "styles.css?v=50", "app.js?v=50",
-  "auth-guard.js?v=50", "mock-data.js?v=50", "ia-asistente.js?v=50", "firestore-data.js?v=50",
+const CACHE = "cuymax-v51";
+const SHELL = ["index.html", "cuymax-theme.css?v=51", "styles.css?v=51", "app.js?v=51",
+  "auth-guard.js?v=51", "mock-data.js?v=51", "ia-asistente.js?v=51", "firestore-data.js?v=51",
   "manifiesto.webmanifest", "logo.png", "icono-180.png", "icono-192.png", "icono-512.png",
   "icono-192-maskable.png", "icono-512-maskable.png", "vendor/chart.umd.min.js",
-  "vendor/firebase/firebase-app-compat.js?v=50",
-  "vendor/firebase/firebase-auth-compat.js?v=50",
-  "vendor/firebase/firebase-firestore-compat.js?v=50",
-  "vendor/fonts/fuentes.css?v=50",
+  "vendor/firebase/firebase-app-compat.js?v=51",
+  "vendor/firebase/firebase-auth-compat.js?v=51",
+  "vendor/firebase/firebase-firestore-compat.js?v=51",
+  "vendor/fonts/fuentes.css?v=51",
   "vendor/fonts/UcC73FwrK3iLTeHuS_nVMrMxCp50SjIa1ZL7.woff2",
   "vendor/fonts/UcC73FwrK3iLTeHuS_nVMrMxCp50SjIa25L7SUc.woff2",
   "vendor/fonts/LDIoaomQNQcsA88c7O9yZ4KMCoOg4Ko20yw.woff2",
@@ -75,5 +75,57 @@ self.addEventListener("fetch", function (e) {
 
   e.respondWith(
     caches.match(e.request).then(function (r) { return r || fetch(e.request); })
+  );
+});
+
+/* ---------- notificaciones (aviso diario al celular) ----------
+   El Worker de Cloudflare manda el aviso a la hora que se eligió en Ajustes,
+   con un resumen del trabajo pendiente. Al tocar la notificación se abre el
+   panel en la sección Avisos. Si el aviso llega sin texto, se muestra uno
+   genérico en vez de quedarse callado. */
+
+self.addEventListener("push", function (e) {
+  var texto = "Abre CuyMax para revisar los avisos de tu granja";
+  var veniaDatos = false;
+  try {
+    if (e.data) {
+      var dato = e.data.json();
+      if (dato && dato.t) { texto = String(dato.t); veniaDatos = true; }
+    }
+  } catch (err) { /* texto plano u otra cosa: queda el genérico */ }
+
+  /* Trazas de diagnóstico: qué llegó y cuándo (se leen desde la página). */
+  try {
+    caches.open("cuymax-diag").then(function (c) {
+      c.put("ultimo-push", new Response(JSON.stringify({
+        cuando: new Date().toISOString(), datos: veniaDatos, texto: texto
+      })));
+    });
+  } catch (err2) { /* solo diagnóstico */ }
+
+  var aviso = self.registration.showNotification("CuyMax · Avisos", {
+    body: texto,
+    icon: "icono-192.png",
+    badge: "icono-192-maskable.png",
+    tag: "cuymax-avisos",
+    renotify: false,
+    data: { url: "./?modo=real&tab=avisos" }
+  });
+  e.waitUntil(aviso.catch(function (err) {
+    console.error("No se pudo mostrar la notificación:", err);
+  }));
+});
+
+self.addEventListener("notificationclick", function (e) {
+  e.notification.close();
+  var destino = (e.notification.data && e.notification.data.url) || "./?modo=real";
+  e.waitUntil(
+    self.clients.matchAll({ type: "window", includeUncontrolled: true }).then(function (lista) {
+      for (var i = 0; i < lista.length; i++) {
+        var c = lista[i];
+        if (c.url.indexOf("/app/") >= 0) { return c.focus(); }
+      }
+      return self.clients.openWindow(destino);
+    })
   );
 });
