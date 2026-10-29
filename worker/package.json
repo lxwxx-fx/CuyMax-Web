@@ -1,0 +1,18 @@
+{
+  "name": "cuymax-ia",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Worker de IA para CuyMax: interpreta mensajes de la granja y devuelve una accion estructurada.",
+  "scripts": {
+    "dev": "wrangler dev",
+    "deploy": "wrangler deploy",
+    "tail": "wrangler tail"
+  },
+  "devDependencies": {
+    "wrangler": "^4.42.0"
+  },
+  "allowScripts": {
+    "esbuild@0.28.2": true,
+    "workerd@1.20261023.1": true
+  }
+}

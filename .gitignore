@@ -2,7 +2,11 @@
 server/.env
 server/firebase-creds.json
 functions/.env
+worker/.dev.vars
 *.env.local
+
+# Cloudflare Workers (cache local de wrangler)
+worker/.wrangler/
 
 # Dependencias instaladas
 node_modules/

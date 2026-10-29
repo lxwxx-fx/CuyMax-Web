@@ -24,6 +24,25 @@ Colecciones de Firestore: `granjas`, `lotes`, `pozas`, `pesajes`, `mortalidad`,
 `consumo_alimento`, `partos`, `partos_proximos`, `destetes`, `ventas`, `faenas`, `retiros`,
 `avisos_atendidos`.
 
+## Asistente con IA (Worker de Cloudflare)
+
+El chat del panel entiende lenguaje libre («se murieron 2 cuyes en P-001 por diarrea»)
+y propone una acción; **nada se guarda** hasta que la persona confirma.
+
+Quien interpreta el mensaje es un **Worker de Cloudflare** que llama a **Groq**:
+
+- código y despliegue: `worker/` (ver `worker/README.md`);
+- el panel apunta al Worker con `CUYMAX_IA_URL` en `firebase-config.js`;
+- si esa variable está vacía, o el Worker falla, el panel usa su **intérprete de
+  reglas**: sin red, sin costo y con los casos más frecuentes.
+
+El Worker **no accede a la base de datos**: recibe el texto y un contexto mínimo
+(pozas abiertas y hembras en gestación) y devuelve una acción. Por eso sirve igual
+con Firestore (hoy) que con Supabase (ver `docs/supabase/`).
+
+La clave de Groq vive como **secreto del Worker** (`wrangler secret put GROQ_API_KEY`),
+nunca en el navegador ni en el repositorio.
+
 ## Estructura
 
 | Ruta | Contenido |
@@ -32,8 +51,10 @@ Colecciones de Firestore: `granjas`, `lotes`, `pozas`, `pesajes`, `mortalidad`,
 | `login.html` | Acceso (Firebase Auth: correo/contraseña) |
 | `app/` | Panel PWA |
 | `app/firestore-data.js` | Capa de datos reales para el modo monitoreo + asistente |
+| `app/ia-asistente.js` | Puente con el Worker de IA (sirve para Firestore y Supabase) |
 | `app/mock-data.js` | Datos de ejemplo y detección del modo |
-| `functions/` | Cloud Function `asistente` (Groq). **No desplegada aún**: requiere plan Blaze |
+| `worker/` | **Worker de IA en Cloudflare** (Groq): texto libre → acción estructurada |
+| `functions/` | Cloud Function `asistente` (legado, sustituida por `worker/`). Requiere plan Blaze |
 | `server/` | API local (FastAPI + PostgreSQL), opcional en la nube |
 | `img/` | Imágenes de la landing |
 | `docs/` | Documentación del proyecto (no se publica) |

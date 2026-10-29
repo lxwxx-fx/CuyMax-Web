@@ -60,6 +60,10 @@ function fsNum(x) {
 
 function fsUp(x) { return String(x || "").trim().toUpperCase(); }
 
+/* Código comparable: ignora guiones y espacios para que "H001" y "H-001"
+   se traten como la misma hembra (los datos reales usan H-001). */
+function fsCodigo(x) { return fsUp(x).replace(/[^A-Z0-9]/g, ""); }
+
 /* Días que faltan para una fecha (negativo = ya pasó). */
 function fsDias(fecha) {
   if (!fecha) { return null; }
@@ -341,13 +345,13 @@ async function fsRegistrarAlimento(datos) {
 async function fsProgramarParto(datos) {
   var hembra = fsUp(datos.hembra);
   var poza = fsUp(datos.poza);
-  if (!hembra) { throw new Error("Dime el arete de la hembra (por ejemplo H003)."); }
+  if (!hembra) { throw new Error("Dime el arete de la hembra (por ejemplo H-001)."); }
   var fecha = String(datos.fecha_objetivo || "").slice(0, 10);
   if (!/^\d{4}-\d{2}-\d{2}$/.test(fecha) || fsDias(fecha) === null) {
     throw new Error("Dime una fecha estimada válida para el parto.");
   }
   var existentes = await fsTodos("partos_proximos");
-  var repetida = existentes.filter(function (p) { return fsUp(p.hembra) === hembra; });
+  var repetida = existentes.filter(function (p) { return fsCodigo(p.hembra) === fsCodigo(hembra); });
   if (repetida.length) { throw new Error("La hembra " + hembra + " ya tiene un parto programado."); }
   await fsdb().collection("partos_proximos").add({
     granja_id: fsGranja(), hembra: hembra, poza: poza || "", fecha_objetivo: fecha,
@@ -364,34 +368,55 @@ async function fsProgramarParto(datos) {
 async function fsRegistrarParto(datos) {
   var hembra = fsUp(datos.hembra);
   var poza = fsUp(datos.poza);
-  if (!hembra && !poza) { throw new Error("¿Qué hembra parió? Dime su arete (por ejemplo H003) o la ubicación."); }
+  if (!hembra && !poza) { throw new Error("¿Qué hembra parió? Dime su arete (por ejemplo H-001) o la ubicación."); }
   var proximos = await fsTodos("partos_proximos");
   var encontrados = proximos.filter(function (p) {
-    if (hembra) { return fsUp(p.hembra) === hembra; }
-    return fsUp(p.poza) === poza;
+    if (hembra) { return fsCodigo(p.hembra) === fsCodigo(hembra); }
+    return fsCodigo(p.poza) === fsCodigo(poza);
   });
-  if (!encontrados.length) { throw new Error("No encuentro una hembra en gestación con ese dato."); }
   if (encontrados.length > 1) {
     throw new Error("Hay varias hembras en gestación ahí (" + encontrados.map(function (p) { return p.hembra; }).join(", ") + "). ¿Cuál parió?");
   }
-  var p = encontrados[0];
+  if (!encontrados.length && !hembra) {
+    throw new Error("No encuentro una hembra en gestación en " + poza + ". Indica el arete de la hembra.");
+  }
+  var p = encontrados[0] || null;
   var vivos = fsNum(datos.nacidos_vivos);
   var muertos = fsNum(datos.nacidos_muertos);
   if (vivos !== Math.round(vivos) || muertos !== Math.round(muertos) ||
       vivos < 0 || muertos < 0 || vivos > 15 || muertos > 15 || vivos + muertos <= 0) {
     throw new Error("La cantidad de crías no parece correcta.");
   }
+  var hembraFinal = fsUp(p ? (p.hembra || hembra) : hembra);
+  var pozaFinal = fsUp(p ? (p.poza || poza) : poza);
+  if (!p) {
+    // Si la hembra ya tiene partos anteriores, conservamos su formato exacto
+    // (H-001) y su última ubicación conocida.
+    try {
+      var historial = await fsTodos("partos");
+      var previos = historial.filter(function (x) { return fsCodigo(x.hembra) === fsCodigo(hembra); });
+      previos.sort(function (a, b) { return String(a.fecha || "") < String(b.fecha || "") ? 1 : -1; });
+      if (previos.length) {
+        hembraFinal = fsUp(previos[0].hembra);
+        if (!pozaFinal) { pozaFinal = fsUp(previos[0].poza); }
+      }
+    } catch (e) { /* si falla la lectura, se usa lo escrito */ }
+  }
   await fsdb().collection("partos").add({
-    granja_id: fsGranja(), hembra: fsUp(p.hembra || hembra), poza: fsUp(p.poza || poza),
+    granja_id: fsGranja(), hembra: hembraFinal, poza: pozaFinal,
     fecha: fsHoy(), nacidos_vivos: vivos, nacidos_muertos: muertos,
     crias_actuales: vivos, destetado: vivos === 0,
     fecha_destete_prevista: fsSumaDias(16),
     creado_en: new Date().toISOString()
   });
-  await fsdb().collection("partos_proximos").doc(p.__id).delete();
+  if (p) {
+    await fsdb().collection("partos_proximos").doc(p.__id).delete();
+  }
   return {
-    ok: true, resumen: "parto registrado: " + vivos + " vivos y " + muertos + " muertos",
-    detalle: "Destete previsto para el " + fsSumaDias(16) + "."
+    ok: true,
+    resumen: "parto registrado: " + vivos + " vivos y " + muertos + " muertos",
+    detalle: (p ? "" : "La hembra no estaba programada; se registró igual. ") +
+      "Destete previsto para el " + fsSumaDias(16) + "."
   };
 }
 
@@ -404,7 +429,7 @@ async function fsRegistrarDestete(datos) {
   var destino = fsUp(datos.poza_destino);
   if (!destino) { throw new Error("Dime a qué poza pasan las crías."); }
   var partos = await fsTodos("partos");
-  var pendientes = partos.filter(function (p) { return fsUp(p.hembra) === hembra && !p.destetado; });
+  var pendientes = partos.filter(function (p) { return fsCodigo(p.hembra) === fsCodigo(hembra) && !p.destetado; });
   pendientes.sort(function (a, b) { return String(a.fecha || "") < String(b.fecha || "") ? 1 : -1; });
   if (!pendientes.length) { throw new Error("No encuentro crías pendientes de destete para " + hembra + "."); }
   var p = pendientes[0];
@@ -842,44 +867,42 @@ function interpretarAsistente(texto) {
   return { accion: "sin_accion", motivo: "No entendí el mensaje. Intenta escribir algo como: «se murieron 2 cuyes en P-001 por diarrea», «10 kg de balanceado para P-001» o «¿cómo va la poza P-001?»." };
 }
 
-/* ---------- Asistente IA (Cloud Function con Groq) ----------
-   La clave de Groq vive en el servidor (Secret Manager). Aquí solo se llama a
-   la función `asistente`; si no responde, se usa el intérprete de reglas.
+/* ---------- Asistente IA (Worker de Cloudflare + Groq) ----------
+   La llamada vive en ia-asistente.js para poder reutilizarla si algún día los
+   datos pasan a Supabase. Aquí solo se arma el contexto de Firestore.
 
-   OJO: la función necesita el plan Blaze de Firebase (Secret Manager). Mientras
-   FS_IA_ACTIVA sea false, el chat usa solo las reglas: sin latencia y sin costo.
-   Cuando la función esté desplegada, ponlo en true y vuelve a publicar. */
-var FS_IA_ACTIVA = false;
+   La URL del Worker se configura en firebase-config.js (CUYMAX_IA_URL). Si está
+   vacía, FS_IA_ACTIVA queda en false y el chat funciona solo con reglas. */
+var FS_IA_ACTIVA = (typeof iaConfigurada === "function" && iaConfigurada());
 
-var _fsfn = null;
-
-function fsfn() {
-  if (_fsfn) { return _fsfn; }
-  if (typeof firebase === "undefined" || !firebase.functions) {
-    throw new Error("Firebase Functions no terminó de cargar.");
-  }
-  if (!firebase.apps || !firebase.apps.length) { firebase.initializeApp(FIREBASE_CONFIG); }
-  _fsfn = firebase.app().functions("us-central1");
-  return _fsfn;
-}
-
-function fsConTiempo(promesa, ms) {
-  return new Promise(function (resolver, rechazar) {
-    var t = setTimeout(function () {
-      rechazar(new Error("El asistente tardó demasiado en responder."));
-    }, ms);
-    promesa.then(function (v) { clearTimeout(t); resolver(v); },
-                 function (e) { clearTimeout(t); rechazar(e); });
-  });
+/* Contexto que ayuda a la IA a reconocer los códigos reales de la granja. */
+async function fsContextoIA() {
+  var pozas = [];
+  var hembras = [];
+  try {
+    var lotes = await fsTodos("lotes");
+    pozas = lotes
+      .filter(function (l) { return l && l.codigo && String(l.estado || "abierto") === "abierto"; })
+      .map(function (l) { return fsUp(l.codigo); });
+  } catch (e) { /* sin pozas: la IA trabaja igual */ }
+  try {
+    var prox = await fsTodos("partos_proximos");
+    hembras = prox
+      .filter(function (p) { return p && p.hembra; })
+      .map(function (p) { return [fsUp(p.hembra), fsUp(p.poza)]; });
+  } catch (e) { /* sin gestaciones: la IA trabaja igual */ }
+  return { pozas: pozas, hembras: hembras };
 }
 
 async function fsInterpretarIA(texto) {
-  if (!FS_IA_ACTIVA) { throw new Error("Asistente IA en la nube desactivado."); }
-  var llamada = fsfn().httpsCallable("asistente");
-  var r = await fsConTiempo(llamada({ texto: texto, granja_id: fsGranja() }), 25000);
-  var d = r && r.data;
-  if (!d || !d.accion) { throw new Error("El asistente no devolvió una acción."); }
-  return { accion: d.accion, motivo: d.motivo, datos: d.datos || {} };
+  if (!FS_IA_ACTIVA) { throw new Error("Asistente IA no configurado."); }
+  var ctx = await fsContextoIA();
+  return iaInterpretar(texto, ctx, async function () {
+    var usuario = null;
+    try { usuario = firebase.auth && firebase.auth().currentUser; } catch (e) { usuario = null; }
+    if (!usuario) { throw new Error("Inicia sesión para usar el asistente con IA."); }
+    return usuario.getIdToken();
+  });
 }
 
 /* ---------- textos de las consultas del asistente ---------- */

@@ -1,0 +1,7 @@
+# Copia este archivo como `.dev.vars` para probar en local.
+# `.dev.vars` NO se versiona: contiene la clave real de Groq.
+GROQ_API_KEY=pon-aqui-tu-clave-de-groq
+MODELO_IA=openai/gpt-oss-120b
+
+# Para probar sin sesión de Firebase en local:
+# REQUIRE_AUTH=false

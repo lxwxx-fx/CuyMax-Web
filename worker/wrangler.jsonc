@@ -1,0 +1,20 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "cuymax-ia",
+  "main": "src/index.js",
+  "compatibility_date": "2026-10-01",
+  "observability": {
+    "enabled": true
+  },
+  "vars": {
+    "MODELO_IA": "openai/gpt-oss-120b",
+    /* Modelo de reserva: se usa solo si el principal se queda sin cupo (429).
+       Los límites de Groq son por modelo, así que esto da aire en el plan gratis. */
+    "MODELO_IA_RESERVA": "openai/gpt-oss-20b",
+    /* API key publica del proyecto Firebase (la misma de firebase-config.js).
+       No es un secreto: sirve solo para validar el ID token del usuario. */
+    "FIREBASE_API_KEY": "AIzaSyCasoyb4QuLSwk_5092O0X7cXojg9Tgh3Y",
+    "ALLOWED_ORIGINS": "https://cuymax-by-dc.web.app,https://cuymax-by-dc.firebaseapp.com,http://localhost:8000,http://127.0.0.1:8000",
+    "REQUIRE_AUTH": "true"
+  }
+}
