@@ -1226,7 +1226,7 @@ def borrar_registro(tipo: str, registro_id: int, granja_id: int, _: None = Depen
 
 # ---------- Landing y archivos públicos de la raíz de CUYMAX-WEB ----------
 
-ARCHIVOS_RAIZ = {"login.html", "landing.css", "firebase-config.js", "logo.png"}
+ARCHIVOS_RAIZ = {"index.html", "login.html", "landing.css", "firebase-config.js", "logo.png"}
 
 
 @app.get("/", include_in_schema=False)

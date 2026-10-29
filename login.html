@@ -8,80 +8,173 @@
   <link rel="icon" href="logo.png" type="image/png">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@600;700;800&display=swap">
   <style>
     :root{
-      --primary:#754B2E; --primary-dark:#53331C; --primary-light:#8E5D38;
-      --bg:#FAF7F0; --surface:#FFFFFF; --border:#E6DFD5;
-      --text:#1C1917; --muted:#665E57; --green:#2E7D32; --red:#C53030;
-      --radius:16px; --font:'Inter',system-ui,-apple-system,sans-serif;
+      --primary:#7B4B2A; --primary-dark:#3E2210; --primary-light:#9D653D;
+      --gold:#F5C84C;
+      --bg:#FAF7F2; --surface:#FFFFFF; --border:rgba(123,75,42,.18);
+      --text:#1C1613; --muted:#5F544C; --green:#1E7E48; --red:#C53030;
+      --radius:18px;
+      --font:'Inter',system-ui,-apple-system,sans-serif;
+      --font-display:'Plus Jakarta Sans','Inter',system-ui,sans-serif;
     }
     *{box-sizing:border-box;margin:0;padding:0}
     body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:100vh;display:flex;-webkit-font-smoothing:antialiased}
-    .split{display:grid;grid-template-columns:1.1fr 1fr;min-height:100vh;width:100%}
-    /* Panel izquierdo */
-    .brand-panel{background:linear-gradient(150deg,var(--primary-dark) 0%,var(--primary) 60%,var(--primary-light) 100%);color:#fff;padding:48px;display:flex;flex-direction:column;justify-content:space-between;position:relative;overflow:hidden}
-    .brand-panel::after{content:"";position:absolute;right:-120px;bottom:-120px;width:380px;height:380px;border-radius:50%;background:rgba(255,255,255,.08)}
-    .brand-panel::before{content:"";position:absolute;left:-80px;top:-80px;width:260px;height:260px;border-radius:50%;background:rgba(255,255,255,.06)}
-    .brand-top{display:flex;align-items:center;gap:12px;position:relative;z-index:1}
-    .brand-top img{width:44px;height:44px;border-radius:10px;background:#fff;padding:2px}
-    .brand-top strong{font-size:22px;font-weight:800;display:block;line-height:1}
-    .brand-top span{font-size:12px;opacity:.75;letter-spacing:.6px;text-transform:uppercase}
-    .brand-mid{position:relative;z-index:1;margin:40px 0}
-    .brand-mid h1{font-size:38px;line-height:1.15;font-weight:800;letter-spacing:-.8px;margin-bottom:14px}
-    .brand-mid p{font-size:16px;opacity:.85;max-width:440px;line-height:1.6}
-    .brand-feats{list-style:none;display:grid;gap:12px;margin-top:28px;position:relative;z-index:1}
-    .brand-feats li{display:flex;gap:10px;align-items:center;font-size:14px;background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.18);padding:10px 14px;border-radius:12px;backdrop-filter:blur(4px)}
-    .brand-foot{font-size:12px;opacity:.65;position:relative;z-index:1}
-    /* Panel derecho */
-    .form-panel{display:flex;align-items:center;justify-content:center;padding:40px 24px}
-    .card{background:var(--surface);border:1px solid var(--border);border-radius:20px;box-shadow:0 18px 50px -18px rgba(83,51,28,.25);padding:36px;width:100%;max-width:420px}
-    .card h2{font-size:24px;font-weight:800;color:var(--primary-dark);letter-spacing:-.4px}
+    h1,h2{font-family:var(--font-display)}
+    .split{display:grid;grid-template-columns:1.12fr 1fr;min-height:100vh;width:100%}
+
+    /* Panel izquierdo con fotografía real de galpón y capas de transparencia */
+    .brand-panel{
+      color:#fff;padding:48px;display:flex;flex-direction:column;justify-content:space-between;
+      position:relative;overflow:hidden;background:#1A0E07;isolation:isolate;
+    }
+    .brand-bg{position:absolute;inset:0;z-index:-2}
+    .brand-bg img{width:100%;height:100%;object-fit:cover;object-position:center 30%}
+    .brand-veil{
+      position:absolute;inset:0;z-index:-1;
+      background:
+        linear-gradient(155deg,rgba(20,11,6,.90) 0%,rgba(44,25,13,.76) 52%,rgba(22,13,7,.88) 100%),
+        radial-gradient(circle at 85% 15%,rgba(245,200,76,.18) 0%,transparent 48%);
+    }
+    .brand-top{display:flex;align-items:center;gap:12px;position:relative;z-index:1;text-decoration:none;color:inherit;width:fit-content}
+    .brand-top img{width:46px;height:46px;border-radius:12px;background:#fff;padding:2px;box-shadow:0 6px 18px rgba(0,0,0,.28)}
+    .brand-top strong{font-family:var(--font-display);font-size:22px;font-weight:800;display:block;line-height:1.05}
+    .brand-top span{font-size:11px;opacity:.8;letter-spacing:.08em;text-transform:uppercase}
+
+    .brand-mid{position:relative;z-index:1;margin:36px 0}
+    .brand-badge{
+      display:inline-flex;align-items:center;gap:7px;padding:6px 13px;border-radius:999px;
+      background:rgba(255,248,235,.13);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);
+      border:1px solid rgba(253,230,138,.32);color:#FDE68A;font-size:12px;font-weight:700;margin-bottom:16px;
+    }
+    .brand-mid h1{font-size:clamp(30px,3.2vw,40px);line-height:1.12;font-weight:800;letter-spacing:-.025em;margin-bottom:14px}
+    .brand-mid p{font-size:16px;color:rgba(255,248,240,.86);max-width:450px;line-height:1.62}
+    .brand-feats{list-style:none;display:grid;gap:11px;margin-top:26px;max-width:440px}
+    .brand-feats li{
+      display:flex;gap:10px;align-items:center;font-size:14px;font-weight:500;
+      background:rgba(255,255,255,.11);border:1px solid rgba(255,255,255,.20);
+      padding:11px 15px;border-radius:14px;backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);
+      box-shadow:inset 0 1px 0 rgba(255,255,255,.16);
+    }
+    .brand-feats li i{font-style:normal;color:#6EE7B7;font-weight:800}
+
+    .brand-cuy-mini{
+      display:flex;align-items:center;gap:12px;margin-top:22px;max-width:440px;
+      padding:10px 14px 10px 10px;border-radius:16px;
+      background:rgba(16,9,5,.56);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);
+      border:1px solid rgba(255,255,255,.20);
+    }
+    .brand-cuy-mini img{width:50px;height:50px;border-radius:12px;object-fit:cover;border:1.5px solid rgba(245,200,76,.6)}
+    .brand-cuy-mini b{display:block;font-size:13.5px;color:#fff}
+    .brand-cuy-mini small{font-size:12px;color:rgba(255,245,235,.75)}
+
+    .brand-foot{font-size:12px;color:rgba(255,248,240,.65);position:relative;z-index:1}
+
+    /* Panel derecho con fondo panorámico difuminado y tarjeta glass */
+    .form-panel{
+      display:flex;align-items:center;justify-content:center;padding:40px 24px;
+      position:relative;overflow:hidden;isolation:isolate;
+    }
+    .form-bg{position:absolute;inset:0;z-index:-2}
+    .form-bg img{width:100%;height:100%;object-fit:cover;filter:blur(10px);transform:scale(1.06);opacity:.30}
+    .form-veil{
+      position:absolute;inset:0;z-index:-1;
+      background:linear-gradient(180deg,rgba(250,247,242,.86) 0%,rgba(243,236,225,.80) 100%);
+    }
+    .card{
+      background:rgba(255,255,255,.84);
+      backdrop-filter:blur(26px) saturate(175%);-webkit-backdrop-filter:blur(26px) saturate(175%);
+      border:1px solid rgba(255,255,255,.92);border-radius:24px;
+      box-shadow:0 24px 60px -18px rgba(42,22,10,.26),inset 0 1px 0 #fff;
+      padding:36px;width:100%;max-width:430px;
+    }
+    .card h2{font-size:25px;font-weight:800;color:var(--primary-dark);letter-spacing:-.02em}
     .card .sub{font-size:14px;color:var(--muted);margin:6px 0 22px}
-    .tabs{display:flex;background:#F4EFE6;border-radius:999px;padding:4px;margin-bottom:22px}
-    .tabs button{flex:1;border:none;background:transparent;padding:9px;font:inherit;font-size:13px;font-weight:700;color:var(--muted);border-radius:999px;cursor:pointer}
-    .tabs button.on{background:#fff;color:var(--primary-dark);box-shadow:0 1px 4px rgba(0,0,0,.12)}
-    label{display:block;font-size:13px;font-weight:600;color:var(--primary-dark);margin:14px 0 6px}
+    .tabs{display:flex;background:rgba(243,237,227,.85);border:1px solid rgba(123,75,42,.12);border-radius:999px;padding:4px;margin-bottom:22px}
+    .tabs button{flex:1;border:none;background:transparent;padding:9px;font:inherit;font-size:13px;font-weight:700;color:var(--muted);border-radius:999px;cursor:pointer;transition:.18s}
+    .tabs button.on{background:#fff;color:var(--primary-dark);box-shadow:0 2px 8px rgba(42,22,10,.10)}
+    label{display:block;font-size:12.5px;font-weight:700;color:var(--primary-dark);margin:14px 0 6px}
     .input-wrap{position:relative}
-    input{width:100%;height:48px;border:1px solid var(--border);border-radius:12px;padding:0 44px 0 14px;font:inherit;font-size:15px;background:#FFFEFB;outline:none;transition:.15s}
-    input:focus{border-color:var(--primary);box-shadow:0 0 0 3px rgba(117,75,46,.15);background:#fff}
+    input{
+      width:100%;height:48px;border:1px solid var(--border);border-radius:12px;padding:0 44px 0 14px;
+      font:inherit;font-size:15px;background:rgba(255,255,255,.9);outline:none;transition:.18s;color:var(--text);
+    }
+    input:focus{border-color:var(--primary);box-shadow:0 0 0 4px rgba(123,75,42,.14);background:#fff}
     .eye{position:absolute;right:8px;top:50%;transform:translateY(-50%);border:none;background:none;cursor:pointer;font-size:17px;padding:6px;color:var(--muted)}
-    .btn{width:100%;height:48px;border:none;border-radius:12px;background:var(--primary);color:#fff;font:inherit;font-size:15px;font-weight:800;cursor:pointer;margin-top:22px;box-shadow:0 8px 20px rgba(117,75,46,.35);transition:.15s}
-    .btn:hover{background:var(--primary-dark);transform:translateY(-1px)}
+    .btn{
+      width:100%;height:48px;border:1px solid rgba(255,255,255,.22);border-radius:13px;
+      background:linear-gradient(135deg,#935A32 0%,#6E4020 100%);color:#fff;
+      font:inherit;font-size:15px;font-weight:800;cursor:pointer;margin-top:22px;
+      box-shadow:0 10px 24px -6px rgba(110,64,32,.48),inset 0 1px 0 rgba(255,255,255,.28);transition:.18s;
+    }
+    .btn:hover{background:linear-gradient(135deg,#A4663B 0%,#583217 100%);transform:translateY(-1px)}
     .btn:disabled{opacity:.6;cursor:wait;transform:none}
+    .quick-demo{
+      display:flex;align-items:center;justify-content:center;gap:6px;width:100%;height:42px;margin-top:10px;
+      border-radius:12px;border:1px solid rgba(123,75,42,.22);background:rgba(254,243,199,.45);
+      color:var(--primary-dark);font-size:13px;font-weight:700;text-decoration:none;transition:.18s;
+    }
+    .quick-demo:hover{background:rgba(254,243,199,.8);border-color:var(--primary)}
+    .quick-demo[hidden]{display:none}
     .links{display:flex;justify-content:space-between;margin-top:16px;font-size:13px}
     .links button,.links a{background:none;border:none;color:var(--primary);font:inherit;font-weight:600;cursor:pointer;text-decoration:underline;text-underline-offset:3px;padding:0}
     .msg{min-height:20px;font-size:13px;font-weight:600;margin-top:14px}
-    .msg.err{color:var(--red);background:#FDF0F0;border-radius:8px;padding:8px 12px}
-    .msg.ok{color:var(--green);background:#EFF8F0;border-radius:8px;padding:8px 12px}
-    .back{display:inline-flex;margin-bottom:18px;font-size:13px;font-weight:600;color:var(--muted);text-decoration:none}
+    .msg.err{color:var(--red);background:rgba(253,240,240,.92);border:1px solid rgba(197,48,48,.2);border-radius:10px;padding:9px 12px}
+    .msg.ok{color:var(--green);background:rgba(239,248,240,.92);border:1px solid rgba(30,126,72,.2);border-radius:10px;padding:9px 12px}
+    .back{display:inline-flex;align-items:center;gap:5px;margin-bottom:16px;font-size:13px;font-weight:600;color:var(--muted);text-decoration:none}
     .back:hover{color:var(--primary)}
+
     @media(max-width:900px){
       .split{grid-template-columns:1fr}
-      .brand-panel{display:none}
-      .form-panel{padding:24px 16px}
+      .brand-panel{padding:28px 22px}
+      .brand-mid{margin:18px 0 8px}
+      .brand-mid h1{font-size:24px;margin-bottom:8px}
+      .brand-feats,.brand-cuy-mini,.brand-foot{display:none}
+      .form-panel{padding:26px 16px 36px}
+      .card{padding:28px 22px}
     }
   </style>
 </head>
 <body>
   <div class="split">
     <div class="brand-panel">
-      <div class="brand-top">
+      <div class="brand-bg" aria-hidden="true">
+        <img src="img/crianza-precision.jpg" width="1408" height="768" alt="">
+      </div>
+      <div class="brand-veil" aria-hidden="true"></div>
+
+      <a href="./" class="brand-top">
         <img src="logo.png" alt="CuyMax">
         <div><strong>CuyMax</strong><span>Crianza de precisión</span></div>
-      </div>
+      </a>
+
       <div class="brand-mid">
+        <div class="brand-badge">🌱 Plataforma Peruana para Granjas de Cuyes</div>
         <h1>Gestiona tu granja con datos reales.</h1>
-        <p>Accede a tu panel privado: lotes, pesajes, partos, costos y rentabilidad. Solo usuarios registrados.</p>
+        <p>Accede a tu panel privado: pozas, pesajes semanales, partos, costos de alimento y rentabilidad económica.</p>
         <ul class="brand-feats">
-          <li>✓ &nbsp;Tus datos sincronizados en la nube</li>
-          <li>✓ &nbsp;Funciona en celular y PC</li>
+          <li><i>✓</i> Tus datos sincronizados y aislados en la nube</li>
+          <li><i>✓</i> Funciona en celular y PC, incluso sin señal en el galpón</li>
         </ul>
+        <div class="brand-cuy-mini">
+          <img src="img/cuy-raza-peru.jpg" width="100" height="100" alt="Cuyes mejorados Raza Perú">
+          <div>
+            <b>Control integral por poza y etapa</b>
+            <small>Reproducción · Lactancia · Recría · Engorde</small>
+          </div>
+        </div>
       </div>
+
       <div class="brand-foot">© 2026 CuyMax · Sistema de Crianza de Precisión</div>
     </div>
 
     <div class="form-panel">
+      <div class="form-bg" aria-hidden="true">
+        <img src="img/galpon-panorama.jpg" width="1584" height="672" alt="">
+      </div>
+      <div class="form-veil" aria-hidden="true"></div>
+
       <div class="card">
         <a class="back" href="./">← Volver al sitio</a>
         <h2 id="titulo">Bienvenido de nuevo</h2>
@@ -113,6 +206,7 @@
             <button type="button" class="eye" id="ver" title="Mostrar / ocultar">👁</button>
           </div>
           <button class="btn" id="btn-go" type="submit">Iniciar sesión →</button>
+          <a class="quick-demo" id="btn-quick-demo" href="app/?modo=demo" hidden>✨ Vista rápida de la Demo sin registro →</a>
           <div class="msg" id="msg" role="alert"></div>
         </form>
 
@@ -132,9 +226,23 @@
     "use strict";
     var msg = document.getElementById("msg");
     var btn = document.getElementById("btn-go");
+    var quickDemo = document.getElementById("btn-quick-demo");
     var modo = "login"; // login | registro
     var tabLogin = document.getElementById("tab-login");
     var tabReg = document.getElementById("tab-reg");
+
+    // A dónde volver después de entrar: /app/ (demo) o /app/?modo=real (Monitorear)
+    function destino(){
+      var q = "";
+      try { q = new URLSearchParams(location.search).get("next") || ""; } catch(e) { q = ""; }
+      if (q.charAt(0) === "/" && q.charAt(1) !== "/" && q.indexOf(":") < 0) { return q; }
+      return "app/";
+    }
+
+    var esDestinoReal = destino().indexOf("modo=real") >= 0;
+    if (quickDemo && !esDestinoReal) {
+      quickDemo.hidden = false;
+    }
 
     function pintarMsg(t, ok){
       msg.className = "msg " + (t ? (ok ? "ok" : "err") : "");
@@ -162,14 +270,6 @@
     firebase.initializeApp(FIREBASE_CONFIG);
     var auth = firebase.auth();
 
-    // A dónde volver después de entrar: /app/ (demo) o /app/?modo=real (Monitorear)
-    function destino(){
-      var q = "";
-      try { q = new URLSearchParams(location.search).get("next") || ""; } catch(e) { q = ""; }
-      if (q.charAt(0) === "/" && q.charAt(1) !== "/" && q.indexOf(":") < 0) { return q; }
-      return "app/";
-    }
-
     // Si ya hay sesión, entra directo
     auth.onAuthStateChanged(function(u){
       if(u){ window.location.replace(destino()); }
@@ -182,10 +282,13 @@
       tabReg.classList.toggle("on", !login);
       document.getElementById("campos-nombre").hidden = login;
       document.getElementById("titulo").textContent = login ? "Bienvenido de nuevo" : "Crea tu cuenta";
-      document.getElementById("subtitulo").textContent = login ? "Inicia sesión para abrir la demo privada." : "Regístrate gratis para probar la demo.";
+      document.getElementById("subtitulo").textContent = login
+        ? (esDestinoReal ? "Inicia sesión para entrar al monitoreo de tu granja." : "Inicia sesión para abrir la demo privada.")
+        : "Regístrate gratis para gestionar tu granja en CuyMax.";
       btn.textContent = login ? "Iniciar sesión →" : "Crear cuenta →";
       pintarMsg("", true);
     }
+    setModo("login");
     tabLogin.addEventListener("click", function(){ setModo("login"); });
     tabReg.addEventListener("click", function(){ setModo("registro"); });
 
