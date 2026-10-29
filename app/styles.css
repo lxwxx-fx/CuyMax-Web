@@ -788,3 +788,16 @@ html[data-theme="dark"] dialog.modal {
 }
 .nfc-estado.ok { color: var(--accent-ink); }
 .nfc-estado.err { color: var(--red); }
+
+/* ---------- trabajo sin conexión ---------- */
+/* La insignia "Sin conexión" late para que se note de reojo, sin estorbar. */
+#badge-offline::before {
+  animation: offline-latido 1.8s ease-in-out infinite;
+}
+@keyframes offline-latido {
+  0%, 100% { opacity: .85; }
+  50% { opacity: .2; }
+}
+@media (prefers-reduced-motion: reduce) {
+  #badge-offline::before { animation: none; }
+}

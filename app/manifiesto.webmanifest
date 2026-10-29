@@ -1,14 +1,61 @@
 {
+  "id": "/app/",
   "name": "CuyMax - gestión de cuyes",
   "short_name": "CuyMax",
-  "start_url": ".",
-  "scope": ".",
+  "description": "Registro y control productivo de una granja de cuyes: pozas, peso, alimento, partos, ventas y avisos.",
+  "lang": "es-PE",
+  "dir": "ltr",
+  "start_url": "./?modo=real",
+  "scope": "./",
   "display": "standalone",
+  "display_override": ["standalone", "minimal-ui"],
+  "orientation": "any",
   "background_color": "#FAF7F0",
   "theme_color": "#754B2E",
+  "categories": ["productivity", "business", "utilities"],
   "icons": [
-    { "src": "logo.png", "sizes": "1024x1024", "type": "image/png" },
-    { "src": "icono-192.png", "sizes": "192x192", "type": "image/png" },
-    { "src": "icono-512.png", "sizes": "512x512", "type": "image/png" }
+    { "src": "icono-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "icono-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "icono-192-maskable.png", "sizes": "192x192", "type": "image/png", "purpose": "maskable" },
+    { "src": "icono-512-maskable.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ],
+  "screenshots": [
+    {
+      "src": "capturas/panel-escritorio.jpg",
+      "sizes": "1600x1000",
+      "type": "image/jpeg",
+      "form_factor": "wide",
+      "label": "Panel general de la granja"
+    },
+    {
+      "src": "capturas/panel-movil.jpg",
+      "sizes": "820x1775",
+      "type": "image/jpeg",
+      "form_factor": "narrow",
+      "label": "CuyMax en el celular"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Registrar movimiento",
+      "short_name": "Registrar",
+      "description": "Anotar peso, muerte, alimento, parto o venta",
+      "url": "./?modo=real&tab=registrar",
+      "icons": [{ "src": "icono-192.png", "sizes": "192x192", "type": "image/png" }]
+    },
+    {
+      "name": "Avisos del día",
+      "short_name": "Avisos",
+      "description": "Partos próximos, destetes y pesajes pendientes",
+      "url": "./?modo=real&tab=avisos",
+      "icons": [{ "src": "icono-192.png", "sizes": "192x192", "type": "image/png" }]
+    },
+    {
+      "name": "Panel general",
+      "short_name": "Panel",
+      "description": "Indicadores y gráficas de la granja",
+      "url": "./?modo=real&tab=panel",
+      "icons": [{ "src": "icono-192.png", "sizes": "192x192", "type": "image/png" }]
+    }
   ]
 }

@@ -17,6 +17,19 @@ function fsdb() {
   }
   if (!firebase.apps || !firebase.apps.length) { firebase.initializeApp(FIREBASE_CONFIG); }
   _fsdb = firebase.firestore();
+  /* Sin conexión: Firestore guarda los cambios en el teléfono y los sube solo
+     cuando vuelve la señal. Así se puede pesar o anotar una muerte en el galpón,
+     donde no hay cobertura. synchronizeTabs evita que dos pestañas se peleen
+     por la misma caché. */
+  try {
+    _fsdb.enablePersistence({ synchronizeTabs: true }).catch(function (e) {
+      /* Ya había otra pestaña abierta o el navegador no lo permite:
+         la app sigue funcionando, solo que sin guardar cambios pendientes. */
+      console.warn("Caché local de Firestore no disponible:", (e && e.code) || e);
+    });
+  } catch (e) {
+    console.warn("Este navegador no admite la caché local de Firestore:", e);
+  }
   return _fsdb;
 }
 

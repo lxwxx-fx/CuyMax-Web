@@ -8,14 +8,18 @@
 <title>CuyMax · Panel</title>
 <link rel="manifest" href="manifiesto.webmanifest">
 <link rel="icon" href="logo.png" type="image/png">
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="preconnect" href="https://www.gstatic.com" crossorigin>
 <link rel="preconnect" href="https://firestore.googleapis.com" crossorigin>
 <link rel="preconnect" href="https://identitytoolkit.googleapis.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@600;700;800&display=swap">
-<link rel="stylesheet" href="cuymax-theme.css?v=47">
-<link rel="stylesheet" href="styles.css?v=47">
+<!-- Tipografías propias: el panel abre sin internet y sin esperar a Google. -->
+<link rel="stylesheet" href="vendor/fonts/fuentes.css?v=48">
+<link rel="stylesheet" href="cuymax-theme.css?v=48">
+<link rel="stylesheet" href="styles.css?v=48">
+<!-- iPhone: icono propio y apertura a pantalla completa al añadir a inicio. -->
+<link rel="apple-touch-icon" href="icono-180.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="CuyMax">
 </head>
 <body>
 <div class="app">
@@ -56,6 +60,8 @@
         <p class="mini muted" id="auth-user" style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">Verificando sesión…</p>
         <p><span class="badge b-amber" id="badge-demo">Modo demo</span><span class="badge b-green oculto" id="badge-real">Datos reales</span></p>
         <button id="btn-ajustes" type="button" class="btn sm">Ajustes</button>
+        <button id="btn-instalar" type="button" class="btn sm primary oculto" style="width:100%;margin-top:8px;">Instalar app</button>
+        <button id="btn-actualizar" type="button" class="btn sm oculto" style="width:100%;margin-top:8px;">Versión nueva · Actualizar</button>
         <button type="button" class="btn sm" onclick="window.cuymaxSalir ? window.cuymaxSalir() : (location.href='../login.html')" style="width:100%;margin-top:8px;">Cerrar sesión</button>
         <a href="../" class="btn sm" style="display:flex; align-items:center; justify-content:center; gap:4px; margin-top:8px; text-decoration:none; color:inherit; font-size:12px;">← Volver al sitio web</a>
       </div>
@@ -65,6 +71,8 @@
   <div class="main">
     <header class="topbar">
       <div class="crumbs">Mi granja <span class="sep">/</span> <b id="crumb-actual">Panel</b></div>
+      <span class="badge b-amber oculto" id="badge-offline" role="status" aria-live="polite"
+            title="Sin conexión: puedes seguir registrando y se guarda en el teléfono hasta que vuelva la señal">Sin conexión</span>
       <div class="search">
         <svg viewBox="0 0 24 24" aria-hidden="true" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg>
         <input id="buscador" type="search" placeholder="Buscar poza o hembra...">
@@ -576,16 +584,16 @@
 <div class="toasts" id="toasts" aria-live="polite"></div>
 
 <script src="vendor/chart.umd.min.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-functions-compat.js"></script>
+<!-- SDK de Firebase servido desde el propio dominio: así el panel abre sin internet. -->
+<script src="vendor/firebase/firebase-app-compat.js?v=48"></script>
+<script src="vendor/firebase/firebase-auth-compat.js?v=48"></script>
+<script src="vendor/firebase/firebase-firestore-compat.js?v=48"></script>
 <script src="../firebase-config.js"></script>
-<script src="mock-data.js?v=47"></script>
-<script src="ia-asistente.js?v=47"></script>
-<script src="firestore-data.js?v=47"></script>
-<script src="auth-guard.js?v=47"></script>
-<script src="app.js?v=47"></script>
+<script src="mock-data.js?v=48"></script>
+<script src="ia-asistente.js?v=48"></script>
+<script src="firestore-data.js?v=48"></script>
+<script src="auth-guard.js?v=48"></script>
+<script src="app.js?v=48"></script>
 <script>
 if ("serviceWorker" in navigator) {
   window.addEventListener("load", function () {

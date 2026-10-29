@@ -1,11 +1,22 @@
-/* Service worker: la pantalla funciona sin internet; los datos (/api) siempre van a la red.
+/* Service worker: la app abre sin internet, con las tipografías y el SDK de
+   Firebase servidos desde el propio dominio. Los datos van a Firestore, que
+   guarda los cambios pendientes en el teléfono hasta que vuelve la señal.
    Al publicar cambios se auto-actualiza sin cerrar pestañas (skipWaiting + claim).
    Los archivos locales llevan ?v= para que al subir una versión el navegador no
    reutilice una copia vieja de la caché HTTP (Firebase sirve los .js con max-age). */
-const CACHE = "cuymax-v47";
-const SHELL = ["index.html", "cuymax-theme.css?v=47", "styles.css?v=47", "app.js?v=47",
-  "auth-guard.js?v=47", "mock-data.js?v=47", "ia-asistente.js?v=47", "firestore-data.js?v=47",
-  "manifiesto.webmanifest", "logo.png", "icono-192.png", "icono-512.png", "vendor/chart.umd.min.js"];
+const CACHE = "cuymax-v48";
+const SHELL = ["index.html", "cuymax-theme.css?v=48", "styles.css?v=48", "app.js?v=48",
+  "auth-guard.js?v=48", "mock-data.js?v=48", "ia-asistente.js?v=48", "firestore-data.js?v=48",
+  "manifiesto.webmanifest", "logo.png", "icono-180.png", "icono-192.png", "icono-512.png",
+  "icono-192-maskable.png", "icono-512-maskable.png", "vendor/chart.umd.min.js",
+  "vendor/firebase/firebase-app-compat.js?v=48",
+  "vendor/firebase/firebase-auth-compat.js?v=48",
+  "vendor/firebase/firebase-firestore-compat.js?v=48",
+  "vendor/fonts/fuentes.css?v=48",
+  "vendor/fonts/UcC73FwrK3iLTeHuS_nVMrMxCp50SjIa1ZL7.woff2",
+  "vendor/fonts/UcC73FwrK3iLTeHuS_nVMrMxCp50SjIa25L7SUc.woff2",
+  "vendor/fonts/LDIoaomQNQcsA88c7O9yZ4KMCoOg4Ko20yw.woff2",
+  "vendor/fonts/LDIoaomQNQcsA88c7O9yZ4KMCoOg4Ko40yyygA.woff2"];
 
 self.addEventListener("install", function (e) {
   e.waitUntil(caches.open(CACHE).then(function (c) {
@@ -40,6 +51,24 @@ self.addEventListener("fetch", function (e) {
         caches.open(CACHE).then(function (c) { c.put("index.html", copia); });
         return r;
       }).catch(function () { return caches.match("index.html"); })
+    );
+    return;
+  }
+
+  // Imágenes: se guardan la primera vez que se ven. No van en la instalación
+  // porque suman casi 1 MB y gastarían datos del teléfono de golpe.
+  if (e.request.destination === "image" && url.origin === self.location.origin) {
+    e.respondWith(
+      caches.match(e.request).then(function (guardada) {
+        if (guardada) { return guardada; }
+        return fetch(e.request).then(function (resp) {
+          if (resp && resp.status === 200) {
+            var copia = resp.clone();
+            caches.open(CACHE).then(function (c) { c.put(e.request, copia); });
+          }
+          return resp;
+        });
+      })
     );
     return;
   }

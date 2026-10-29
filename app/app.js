@@ -1212,6 +1212,19 @@ function aplicarPozaDeUrl(lotes) {
   showToast("Etiqueta NFC · " + cod);
 }
 
+/* Al arrancar: si la URL trae ?tab=, abre esa sección.
+   Lo usan los atajos del icono (mantener pulsado CuyMax en el celular).
+   Si además viene ?poza=, gana la poza: la etiqueta NFC manda. */
+function aplicarTabDeUrl() {
+  if (pozaDeUrl()) { return; }
+  var t = "";
+  try {
+    t = (new URLSearchParams(location.search).get("tab") || "").trim().toLowerCase();
+  } catch (e) { t = ""; }
+  if (!t || !TITULOS[t]) { return; }
+  irA(t);
+}
+
 function margenCuy(e, l) {
   if (e.margen === null || !l || !(l.vivos > 0)) { return "—"; }
   var v = e.margen / l.vivos;
@@ -2273,6 +2286,85 @@ document.getElementById("registros").addEventListener("click", async function (e
 
 /* Arranque: en modo monitoreo espera a que Firebase restaure la sesión y el
    token antes de pedir datos; en local/demo arranca de inmediato. */
+/* ---------- instalación, actualización y estado de la conexión ---------- */
+
+/* Sin conexión: insignia en la barra superior y aviso al cambiar de estado. */
+(function avisoConexion() {
+  var badge = document.getElementById("badge-offline");
+  if (!badge) { return; }
+  var anterior = null;
+  function pintar() {
+    var sin = !navigator.onLine;
+    badge.classList.toggle("oculto", !sin);
+    if (anterior !== null && anterior !== sin) {
+      if (sin) {
+        showToast("Sin conexión · puedes seguir registrando; se sube al volver la señal");
+      } else {
+        showToast("Conexión recuperada · subiendo los registros pendientes");
+      }
+    }
+    anterior = sin;
+  }
+  window.addEventListener("online", pintar);
+  window.addEventListener("offline", pintar);
+  pintar();
+})();
+
+/* Instalar la app: botón propio, en vez de obligar a buscar el menú del navegador. */
+(function instalarApp() {
+  var btn = document.getElementById("btn-instalar");
+  if (!btn) { return; }
+  var pendiente = null;
+  var yaInstalada = false;
+  try {
+    yaInstalada = window.matchMedia("(display-mode: standalone)").matches || navigator.standalone === true;
+  } catch (e) { yaInstalada = false; }
+  if (yaInstalada) { return; }
+
+  /* En iPhone no existe el evento de instalación: se muestra con instrucciones. */
+  if (/iphone|ipad|ipod/i.test(navigator.userAgent)) { btn.classList.remove("oculto"); }
+
+  window.addEventListener("beforeinstallprompt", function (e) {
+    e.preventDefault();
+    pendiente = e;
+    btn.classList.remove("oculto");
+  });
+
+  btn.addEventListener("click", async function () {
+    if (pendiente) {
+      pendiente.prompt();
+      try {
+        var r = await pendiente.userChoice;
+        if (r && r.outcome === "accepted") { btn.classList.add("oculto"); }
+      } catch (e) { /* el diálogo se cerró sin elegir */ }
+      pendiente = null;
+      return;
+    }
+    showToast("En iPhone: toca Compartir y elige «Añadir a pantalla de inicio»");
+  });
+
+  window.addEventListener("appinstalled", function () {
+    btn.classList.add("oculto");
+    showToast("CuyMax instalada en tu teléfono");
+  });
+})();
+
+/* Versión nueva: el service worker se actualiza solo, pero la pestaña abierta
+   sigue con el código anterior hasta recargar. Se avisa y se deja el botón. */
+(function versionNueva() {
+  if (!("serviceWorker" in navigator)) { return; }
+  var btn = document.getElementById("btn-actualizar");
+  var primeraVez = !navigator.serviceWorker.controller;
+  navigator.serviceWorker.addEventListener("controllerchange", function () {
+    if (primeraVez) { primeraVez = false; return; }
+    if (btn) { btn.classList.remove("oculto"); }
+    showToast("Hay una versión nueva de CuyMax · pulsa «Actualizar»");
+  });
+  if (btn) {
+    btn.addEventListener("click", function () { location.reload(); });
+  }
+})();
+
 (async function iniciarPanel() {
   if (window.cuymaxAuthListo) {
     try { await window.cuymaxAuthListo; } catch (e) { /* sigue con lo que haya */ }
@@ -2287,4 +2379,6 @@ document.getElementById("registros").addEventListener("click", async function (e
   generarAutomatico();
   /* Si se llegó pegando una etiqueta NFC, abre la ficha de esa poza. */
   aplicarPozaDeUrl(await pSelects);
+  /* Si se llegó desde un atajo del icono, abre esa sección. */
+  aplicarTabDeUrl();
 })();
