@@ -1,6 +1,6 @@
 /* Service worker: la pantalla funciona sin internet; los datos (/api) siempre van a la red.
    Al publicar cambios se auto-actualiza sin cerrar pestañas (skipWaiting + claim). */
-const CACHE = "cuymax-v31";
+const CACHE = "cuymax-v32";
 const SHELL = ["./", "index.html", "cuymax-theme.css", "styles.css", "app.js", "auth-guard.js", "mock-data.js", "firestore-data.js",
   "manifiesto.webmanifest", "logo.png", "icono-192.png", "icono-512.png", "vendor/chart.umd.min.js"];
 

@@ -434,6 +434,7 @@ async function fsCrearLote(datos) {
         break;
       }
     }
+    if (!pozaCodigo) { throw new Error("No existe la ubicación " + pozaId + " en la granja."); }
   }
   await fsLoteDoc(cod).set({
     granja_id: fsGranja(), codigo: cod, nombre: "", etapa: etapa,
@@ -859,7 +860,7 @@ async function apiReal(metodo, ruta, datos) {
     var pes = await fsTodos("pesajes");
     return pes.filter(function (x) { return fsUp(x.lote) === codP; })
       .map(function (x) {
-        return { fecha: String(x.fecha || "").slice(0, 10), peso_promedio_g: fsNum(x.peso_promedio_g), animales_pesados: fsNum(x.animales_pesados) };
+        return { id: x.__id, fecha: String(x.fecha || "").slice(0, 10), peso_promedio_g: fsNum(x.peso_promedio_g), animales_pesados: fsNum(x.animales_pesados) };
       })
       .sort(function (a, b) { return a.fecha < b.fecha ? -1 : 1; });
   }
