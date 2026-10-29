@@ -302,8 +302,9 @@ function irA(t) {
   document.querySelectorAll(".nav-item").forEach(function (x) {
     x.classList.toggle("active", x.dataset.tab === t);
   });
-  ["panel", "lote", "registrar", "avisos", "registros", "asistente"].forEach(function (k) {
-    document.getElementById("tab-" + k).classList.toggle("active", k === t);
+  ["panel", "lote", "registrar", "avisos", "registros"].forEach(function (k) {
+    var el = document.getElementById("tab-" + k);
+    if (el) { el.classList.toggle("active", k === t); }
   });
   document.title = "CuyMax · " + (TITULOS[t] || "Panel");
   document.getElementById("crumb-actual").textContent = TITULOS[t] || "Panel";
@@ -311,7 +312,6 @@ function irA(t) {
   if (t === "lote") { cargarLotes(); }
   if (t === "registros") { cargarRegistros(); }
   if (t === "avisos") { cargarAvisos(); }
-  if (t === "asistente") { cargarAsistente(); }
 }
 document.querySelectorAll(".nav-item").forEach(function (b) {
   b.addEventListener("click", function () {
@@ -1878,6 +1878,63 @@ function cargarAsistente() {
   renderizarChipsAsistente();
 }
 
+/* ---------- ventana flotante del asistente ---------- */
+var iaPanel = document.getElementById("ia-panel");
+var iaFab = document.getElementById("ia-fab");
+var iaUltimoFoco = null;
+
+function asistenteAbierto() {
+  return !!iaPanel && !iaPanel.hidden;
+}
+
+function abrirAsistente() {
+  if (!iaPanel) { return; }
+  iaUltimoFoco = document.activeElement;
+  iaPanel.hidden = false;
+  if (iaFab) {
+    iaFab.classList.add("oculto");
+    iaFab.setAttribute("aria-expanded", "true");
+  }
+  cargarAsistente();
+  var caja = document.getElementById("chat-msgs");
+  if (caja) { caja.scrollTop = caja.scrollHeight; }
+  var inp = document.getElementById("chat-texto");
+  var form = document.getElementById("f-chat");
+  if (inp && form && !form.classList.contains("oculto")) {
+    setTimeout(function () { inp.focus(); }, 60);
+  }
+}
+
+function cerrarAsistente(devolverFoco) {
+  if (!iaPanel || iaPanel.hidden) { return; }
+  iaPanel.hidden = true;
+  if (iaFab) {
+    iaFab.classList.remove("oculto");
+    iaFab.setAttribute("aria-expanded", "false");
+    if (devolverFoco !== false) { iaFab.focus(); }
+  }
+}
+
+if (iaFab) {
+  iaFab.addEventListener("click", function () {
+    if (asistenteAbierto()) { cerrarAsistente(); } else { abrirAsistente(); }
+  });
+}
+var iaCerrar = document.getElementById("ia-cerrar");
+if (iaCerrar) { iaCerrar.addEventListener("click", function () { cerrarAsistente(); }); }
+
+document.addEventListener("keydown", function (ev) {
+  if (ev.key === "Escape" && asistenteAbierto()) { cerrarAsistente(); }
+});
+
+/* Atajo: Ctrl/⌘ + K abre el asistente desde cualquier pestaña. */
+document.addEventListener("keydown", function (ev) {
+  if ((ev.ctrlKey || ev.metaKey) && String(ev.key).toLowerCase() === "k") {
+    ev.preventDefault();
+    if (asistenteAbierto()) { cerrarAsistente(); } else { abrirAsistente(); }
+  }
+});
+
 function renderizarChipsAsistente() {
   var caja = document.getElementById("chat-chips");
   if (!caja) { return; }
@@ -1940,6 +1997,8 @@ document.getElementById("f-chat").addEventListener("submit", async function (ev)
   if (!texto) { return; }
   burbujaAsistente(escHtml(texto), "u");
   inp.value = "";
+  var chips = document.getElementById("chat-chips");
+  if (chips) { chips.classList.add("oculto"); }
   btn.disabled = true;
   var pensando = burbujaAsistente("Pensando…", "a pensando");
   try {
