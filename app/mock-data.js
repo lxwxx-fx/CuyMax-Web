@@ -5,7 +5,10 @@
 /* Modo monitoreo: el botón "Monitorear" abre el panel con ?modo=real y ahí
    se trabaja con datos reales de Firestore en vez de los de ejemplo. */
 var MODO_REAL = /(?:^|[?&])modo=real(?:&|$)/.test(location.search);
-var MODO_DEMO = !MODO_REAL && /\.(web\.app|firebaseapp\.com)$/i.test(location.hostname);
+var MODO_DEMO = !MODO_REAL && (
+  /(?:^|[?&])modo=demo(?:&|$)/.test(location.search) ||
+  /\.(web\.app|firebaseapp\.com|e2b\.app)$/i.test(location.hostname)
+);
 
 function demoHaceDias(n) {
   var d = new Date();

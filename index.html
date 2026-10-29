@@ -8,73 +8,89 @@
   <link rel="icon" href="logo.png" type="image/png">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@600;700;800&display=swap">
   <link rel="stylesheet" href="landing.css">
 
   <!-- Vista previa al compartir por WhatsApp / Facebook -->
   <meta property="og:type" content="website">
   <meta property="og:title" content="CuyMax · Gestión inteligente para tu granja de cuyes">
   <meta property="og:description" content="Controla tus pozas, pesajes, partos y rentabilidad desde el celular. Funciona sin señal en el galpón.">
-  <meta property="og:image" content="img/panel.png">
+  <meta property="og:image" content="img/hero-galpon.jpg">
   <meta property="og:url" content="https://cuymax-by-dc.web.app/">
   <meta name="twitter:card" content="summary_large_image">
 </head>
 <body>
 
-  <!-- Navigation -->
-  <header class="header">
+  <!-- Navigation (Frosted Glass Adaptive Header) -->
+  <header class="header" id="site-header">
     <div class="container">
-      <nav class="nav">
+      <nav class="nav" aria-label="Navegación principal">
         <a href="#" class="brand">
-          <img src="logo.png" alt="CuyMax Logo">
+          <div class="brand-logo-wrap">
+            <img src="logo.png" alt="CuyMax Logo" width="44" height="44">
+          </div>
           <div class="brand-text">
             CuyMax
             <span>Crianza de precisión</span>
           </div>
         </a>
 
-        <ul class="nav-links">
+        <ul class="nav-links" id="nav-links">
+          <li><a href="#crianza">En el Galpón</a></li>
           <li><a href="#caracteristicas">Características</a></li>
-          <li><a href="#panel">Panel</a></li>
           <li><a href="#comparativa">Beneficios</a></li>
+          <li><a href="#panel">Panel</a></li>
           <li><a href="#faq">Preguntas</a></li>
           <li><a href="#contacto">Contáctanos</a></li>
         </ul>
 
         <div class="nav-actions">
-          <a href="login.html?next=%2Fapp%2F%3Fmodo%3Dreal" class="btn btn-secondary">
+          <a href="login.html?next=%2Fapp%2F%3Fmodo%3Dreal" class="btn btn-glass-nav">
             <span>📊 Monitorear</span>
           </a>
           <a href="login.html?next=%2Fapp%2F" class="btn btn-primary">
             <span>🚀 Probar Demo</span>
           </a>
+          <button type="button" class="nav-toggle" id="nav-toggle" aria-label="Abrir menú" aria-expanded="false">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M4 7h16M4 12h16M4 17h16"/></svg>
+          </button>
         </div>
       </nav>
     </div>
   </header>
 
-  <!-- Hero Section -->
+  <!-- Hero Section with Full-Bleed Galpón Photography & Layered Glassmorphism -->
   <section class="hero">
-    <div class="container">
+    <div class="hero-bg" aria-hidden="true">
+      <img src="img/hero-galpon.jpg" width="1376" height="768" alt="" fetchpriority="high" decoding="async">
+      <div class="hero-veil"></div>
+      <div class="hero-glow hero-glow-gold"></div>
+      <div class="hero-glow hero-glow-emerald"></div>
+    </div>
+
+    <div class="container hero-container">
       <div class="hero-grid">
         <div class="hero-content">
-          <div class="badge badge-amber">
-            <span>🌱</span> Software Especializado para Galpones y Granjas
+          <div class="badge badge-hero-glass">
+            <span class="live-dot"></span>
+            <span>🌱 Software Especializado para Galpones y Granjas</span>
           </div>
+
           <h1>Multiplica la rentabilidad de tu granja con <span class="highlight">datos en tiempo real</span></h1>
+
           <p class="hero-desc">
             Olvídate de los cuadernos de apuntes y los cálculos manuales. CuyMax te ayuda a controlar tus pozas, pesajes semanales, alertas de partos y costos de alimento desde tu celular o por Telegram.
           </p>
 
           <div class="hero-ctas">
-            <a href="login.html?next=%2Fapp%2F" class="btn btn-primary btn-lg">
+            <a href="login.html?next=%2Fapp%2F" class="btn btn-primary btn-lg btn-shine">
               <span>🚀 Abrir Demo Interactiva</span>
               <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
             </a>
-            <a href="login.html?next=%2Fapp%2F%3Fmodo%3Dreal" class="btn btn-secondary btn-lg">
+            <a href="login.html?next=%2Fapp%2F%3Fmodo%3Dreal" class="btn btn-hero-glass btn-lg">
               <span>📊 Monitorear</span>
             </a>
-            <a href="#caracteristicas" class="btn btn-secondary btn-lg">
+            <a href="#caracteristicas" class="btn btn-hero-glass btn-lg">
               <span>Conocer funciones</span>
             </a>
           </div>
@@ -95,15 +111,24 @@
           </div>
         </div>
 
-        <!-- Interactive Preview Mockup -->
+        <!-- Interactive Glassmorphic Preview Mockup + Cuy Portrait Pill -->
         <div class="mockup-wrapper">
+          <div class="hero-cuy-pill">
+            <img src="img/cuy-raza-peru.jpg" width="120" height="120" alt="Ejemplar de cuy Raza Perú en crianza tecnificada">
+            <div class="hero-cuy-pill-txt">
+              <span class="pill-tag">● Línea Mejorada · P-001</span>
+              <strong>+18.4 g / día en engorde</strong>
+              <small>Forraje verde + balanceado óptimo</small>
+            </div>
+          </div>
+
           <div class="mockup-card">
             <div class="mockup-header">
               <div class="mockup-brand">
-                <img src="logo.png" alt="CuyMax" width="22" height="22" style="border-radius:4px;">
+                <img src="logo.png" alt="CuyMax" width="24" height="24">
                 <span>CuyMax · Panel de Granja</span>
               </div>
-              <span class="badge badge-green" style="background: rgba(46,125,50,0.30); color:#D1FAE5; border:none;">● Sistema en Vivo</span>
+              <span class="badge badge-live">● Sistema en Vivo</span>
             </div>
             <div class="mockup-body">
               <div class="mockup-alert">
@@ -118,7 +143,7 @@
                     Población viva
                   </div>
                   <div class="kpi-mini-val">62 cuyes</div>
-                  <div class="kpi-mini-sub">3 pozas activas</div>
+                  <div class="kpi-mini-sub">▲ 3 pozas activas</div>
                 </div>
                 <div class="kpi-mini">
                   <div class="kpi-mini-title">
@@ -133,7 +158,7 @@
               <div class="mockup-chart-placeholder">
                 <div class="mockup-chart-title">
                   <span>Curva de Ganancia de Peso (Poza P-001)</span>
-                  <b style="color:#1B5E20;">730g / meta 900g</b>
+                  <b>730g / meta 900g</b>
                 </div>
                 <div class="mockup-bars">
                   <div class="mockup-bar" style="height: 38%;" title="Semana 1: 300g"></div>
@@ -147,7 +172,7 @@
               </div>
 
               <div class="mockup-action-bar">
-                <a href="login.html?next=%2Fapp%2F" class="btn btn-primary" style="width:100%; border-radius:8px;">
+                <a href="login.html?next=%2Fapp%2F" class="btn btn-primary" style="width:100%; border-radius:12px;">
                   Ingresar a la Demo en Vivo →
                 </a>
               </div>
@@ -158,9 +183,72 @@
     </div>
   </section>
 
-  <!-- Features Section -->
-  <section class="features-section" id="caracteristicas">
+  <!-- NEW Editorial Showcase: Crianza Tecnificada y Galpones Reales -->
+  <section class="showcase-section" id="crianza">
     <div class="container">
+      <div class="section-head">
+        <span class="badge badge-amber">Crianza Tecnificada Peruana</span>
+        <h2>Tecnología diseñada para la realidad de tu galpón</h2>
+        <p>Unimos el manejo zootécnico moderno de cuyes mejorados con control digital simple, visual y preciso en cada poza.</p>
+      </div>
+
+      <div class="showcase-bento">
+        <!-- Main Showcase Card -->
+        <article class="bento-card bento-main">
+          <img src="img/crianza-precision.jpg" width="1408" height="768" alt="Especialista monitoreando cuyes Raza Perú en poza tecnificada con el celular" loading="lazy" decoding="async">
+          <div class="bento-glass-overlay">
+            <span class="bento-tag">Monitoreo en Campo · Offline-First</span>
+            <h3>Del pesaje semanal a la saca comercial sin perder un solo registro</h3>
+            <p>Evalúa el estado corporal, revisa alertas sanitarias y registra consumos frente a la poza con una sola mano.</p>
+            <div class="bento-metrics">
+              <div class="bento-metric">
+                <strong>900g+</strong>
+                <span>Peso comercial óptimo</span>
+              </div>
+              <div class="bento-metric">
+                <strong>15–21 días</strong>
+                <span>Alerta de destete oportuno</span>
+              </div>
+              <div class="bento-metric">
+                <strong>100%</strong>
+                <span>Operativo sin señal</span>
+              </div>
+            </div>
+          </div>
+        </article>
+
+        <!-- Secondary Showcase Column -->
+        <div class="bento-side">
+          <article class="bento-card bento-sub">
+            <img src="img/cuy-raza-peru.jpg" width="1408" height="768" alt="Pareja de cuyes mejorados Raza Perú alimentándose con alfalfa fresca" loading="lazy" decoding="async">
+            <div class="bento-glass-overlay compact">
+              <span class="bento-tag">Genética y Crecimiento</span>
+              <h3>Seguimiento por lote y etapa</h3>
+              <p>Controla curvas reales en reproductoras, lactancia, recría y engorde.</p>
+            </div>
+          </article>
+
+          <article class="bento-card bento-sub">
+            <img src="img/cuyes-alfalfa.jpg" width="1408" height="768" alt="Grupo de cuyes y gazapos comiendo forraje verde de alfalfa en poza limpia" loading="lazy" decoding="async">
+            <div class="bento-glass-overlay compact">
+              <span class="bento-tag">Nutrición y Rentabilidad</span>
+              <h3>Conversión de forraje y balanceado</h3>
+              <p>Conoce cuánto cuesta producir cada cuy en Soles (S/) antes de vender.</p>
+            </div>
+          </article>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Features Section with Subtle Atmospheric Farm Backdrop & Glass Cards -->
+  <section class="features-section" id="caracteristicas">
+    <div class="features-ambient" aria-hidden="true">
+      <img src="img/hero-galpon.jpg" width="1376" height="768" alt="" loading="lazy" decoding="async">
+      <div class="features-ambient-veil"></div>
+    </div>
+
+    <div class="container rel-z">
       <div class="section-head">
         <span class="badge badge-amber">Herramientas Potentes</span>
         <h2>Todo lo que tu galpón necesita para escalar</h2>
@@ -219,61 +307,68 @@
     </div>
   </section>
 
-  <!-- Comparison Section -->
+  <!-- Comparison Section over Golden-Hour Panoramic Farm Backdrop -->
   <section class="comparison-section" id="comparativa">
-    <div class="container">
-      <div class="section-head">
-        <span class="badge badge-amber">El Cambio Real</span>
+    <div class="comparison-bg" aria-hidden="true">
+      <img src="img/galpon-panorama.jpg" width="1584" height="672" alt="" loading="lazy" decoding="async">
+      <div class="comparison-veil"></div>
+    </div>
+
+    <div class="container rel-z">
+      <div class="section-head section-head-light">
+        <span class="badge badge-hero-glass">El Cambio Real</span>
         <h2>¿Por qué dejar el cuaderno y pasar a CuyMax?</h2>
         <p>El manejo empírico cuesta dinero en mortandad no detectada y sobrealimentación.</p>
       </div>
 
       <div class="comparison-grid">
         <div class="compare-card bad">
+          <div class="compare-pill bad-pill">Método Antiguo</div>
           <h3>
             <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><path d="M15 9l-6 6M9 9l6 6"/></svg>
             Gestión tradicional en cuaderno
           </h3>
           <ul class="compare-list">
             <li>
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#C53030" stroke-width="2.5"><path d="M6 18L18 6M6 6l12 12"/></svg>
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#FCA5A5" stroke-width="2.5"><path d="M6 18L18 6M6 6l12 12"/></svg>
               <span>Partos sorpresa sin preparar las ubicaciones, aumentando la muerte de crías.</span>
             </li>
             <li>
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#C53030" stroke-width="2.5"><path d="M6 18L18 6M6 6l12 12"/></svg>
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#FCA5A5" stroke-width="2.5"><path d="M6 18L18 6M6 6l12 12"/></svg>
               <span>Hojas manchadas, mojadas o cuadernos extraviados en el galpón.</span>
             </li>
             <li>
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#C53030" stroke-width="2.5"><path d="M6 18L18 6M6 6l12 12"/></svg>
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#FCA5A5" stroke-width="2.5"><path d="M6 18L18 6M6 6l12 12"/></svg>
               <span>Desconocimiento del costo real del alimento balanceado consumido por poza.</span>
             </li>
             <li>
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#C53030" stroke-width="2.5"><path d="M6 18L18 6M6 6l12 12"/></svg>
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#FCA5A5" stroke-width="2.5"><path d="M6 18L18 6M6 6l12 12"/></svg>
               <span>Venta tardía de animales que ya superaron su pico de conversión alimenticia.</span>
             </li>
           </ul>
         </div>
 
         <div class="compare-card good">
+          <div class="compare-pill good-pill">✦ Estándar de Precisión</div>
           <h3>
             <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><path d="M22 4L12 14.01l-3-3"/></svg>
             Con CuyMax
           </h3>
           <ul class="compare-list">
             <li>
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#2E7D32" stroke-width="2.5"><path d="M20 6L9 17l-5-5"/></svg>
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#6EE7B7" stroke-width="2.5"><path d="M20 6L9 17l-5-5"/></svg>
               <span>Alertas preventivas de partos y destetes directamente en tu pantalla.</span>
             </li>
             <li>
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#2E7D32" stroke-width="2.5"><path d="M20 6L9 17l-5-5"/></svg>
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#6EE7B7" stroke-width="2.5"><path d="M20 6L9 17l-5-5"/></svg>
               <span>Datos sincronizados y respaldados en la nube accesibles desde cualquier teléfono.</span>
             </li>
             <li>
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#2E7D32" stroke-width="2.5"><path d="M20 6L9 17l-5-5"/></svg>
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#6EE7B7" stroke-width="2.5"><path d="M20 6L9 17l-5-5"/></svg>
               <span>Métricas de margen y ganancia por animal calculadas de forma automática.</span>
             </li>
             <li>
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#2E7D32" stroke-width="2.5"><path d="M20 6L9 17l-5-5"/></svg>
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#6EE7B7" stroke-width="2.5"><path d="M20 6L9 17l-5-5"/></svg>
               <span>Saca en el momento exacto (peso objetivo 900g+) maximizando la ganancia.</span>
             </li>
           </ul>
@@ -345,13 +440,18 @@
         </figure>
 
         <figure class="shot-card telefono">
-          <div class="shot-frame">
+          <div class="telefono-bg" aria-hidden="true">
+            <img src="img/hero-galpon.jpg" width="1376" height="768" alt="" loading="lazy" decoding="async">
+            <div class="telefono-veil"></div>
+          </div>
+          <div class="shot-frame rel-z">
             <picture>
               <source type="image/webp" srcset="img/movil-400.webp 400w, img/movil-800.webp 800w" sizes="300px">
               <img src="img/movil.png" width="400" height="860" alt="El panel de CuyMax en un celular" loading="lazy" decoding="async">
             </picture>
           </div>
-          <figcaption class="shot-body">
+          <figcaption class="shot-body rel-z">
+            <span class="badge badge-hero-glass" style="margin-bottom:14px;">📱 PWA Instalable</span>
             <h3>Funciona en tu celular, con o sin señal</h3>
             <p>CuyMax es una aplicación web instalable (PWA): se agrega a la pantalla de inicio y abre sin internet en el galpón. Cuando vuelve la señal, todo se sincroniza.</p>
             <ul class="shot-lista">
@@ -365,15 +465,28 @@
     </div>
   </section>
 
-  <!-- CTA Banner -->
+  <!-- CTA Banner with Cuyes & Frosted Glass Centerpiece -->
   <section class="cta-banner">
-    <div class="container">
-      <h2>Prueba el sistema ahora mismo</h2>
-      <p>Hemos preparado una versión de prueba interactiva con datos de ejemplo para que explores el panel, registres pesajes y veas cómo funciona en tu teléfono.</p>
-      <a href="login.html?next=%2Fapp%2F" class="btn btn-primary btn-lg">
-        <span>🚀 Abrir Demo Interactiva</span>
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
-      </a>
+    <div class="cta-bg" aria-hidden="true">
+      <img src="img/cuyes-alfalfa.jpg" width="1408" height="768" alt="" loading="lazy" decoding="async">
+      <div class="cta-veil"></div>
+    </div>
+
+    <div class="container rel-z">
+      <div class="cta-glass-box">
+        <span class="badge badge-hero-glass">✨ Acceso Inmediato</span>
+        <h2>Prueba el sistema ahora mismo</h2>
+        <p>Hemos preparado una versión de prueba interactiva con datos de ejemplo para que explores el panel, registres pesajes y veas cómo funciona en tu teléfono.</p>
+        <div class="cta-actions">
+          <a href="login.html?next=%2Fapp%2F" class="btn btn-gold btn-lg">
+            <span>🚀 Abrir Demo Interactiva</span>
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+          </a>
+          <a href="login.html?next=%2Fapp%2F%3Fmodo%3Dreal" class="btn btn-hero-glass btn-lg">
+            <span>📊 Entrar a Mi Granja</span>
+          </a>
+        </div>
+      </div>
     </div>
   </section>
 
@@ -409,11 +522,17 @@
     </div>
   </section>
 
-  <!-- Sección Contáctanos -->
+  <!-- Sección Contáctanos con Fondo de Granja y Cristal Esmerilado -->
   <section class="contacto-section" id="contacto">
-    <div class="container">
+    <div class="contacto-bg" aria-hidden="true">
+      <img src="img/galpon-panorama.jpg" width="1584" height="672" alt="" loading="lazy" decoding="async">
+      <div class="contacto-bg-veil"></div>
+    </div>
+
+    <div class="container rel-z">
       <div class="contacto-card">
         <div class="contacto-head">
+          <span class="badge badge-amber" style="margin-bottom:10px;">Atención Directa</span>
           <h2>Contáctanos</h2>
           <p class="contacto-sub">¿Listo para transformar la gestión de tu granja? Escríbenos o llámanos hoy mismo.</p>
         </div>
@@ -486,7 +605,11 @@
       <div class="footer-grid">
         <div class="footer-marca">
           <a href="#" class="footer-logo" aria-label="CuyMax">
-            <img src="logo.png" alt="CuyMax">
+            <img src="logo.png" alt="CuyMax" width="44" height="44">
+            <div class="footer-logo-txt">
+              <strong>CuyMax</strong>
+              <span>Crianza de precisión</span>
+            </div>
           </a>
           <p class="footer-desc">Evolucionando la crianza y la salud de tus cuyes a través del internet de las cosas (IoT). Crianza de precisión de capital peruano.</p>
           <div class="footer-social-circ">
@@ -503,6 +626,7 @@
           <h4>Navegación</h4>
           <ul class="footer-links">
             <li><a href="#">Inicio</a></li>
+            <li><a href="#crianza">En el Galpón</a></li>
             <li><a href="#caracteristicas">Características</a></li>
             <li><a href="#panel">Panel</a></li>
             <li><a href="#faq">Preguntas</a></li>
@@ -535,6 +659,36 @@
     </div>
   </footer>
 
+  <!-- Navegación adaptativa (efecto cristal al hacer scroll + menú móvil) -->
+  <script>
+  (function () {
+    "use strict";
+    var header = document.getElementById("site-header");
+    var toggle = document.getElementById("nav-toggle");
+    var links = document.getElementById("nav-links");
+
+    function onScroll() {
+      if (!header) { return; }
+      header.classList.toggle("is-scrolled", window.scrollY > 36);
+    }
+    window.addEventListener("scroll", onScroll, { passive: true });
+    onScroll();
+
+    if (toggle && links) {
+      toggle.addEventListener("click", function () {
+        var open = links.classList.toggle("is-open");
+        toggle.setAttribute("aria-expanded", open ? "true" : "false");
+      });
+      links.querySelectorAll("a").forEach(function (a) {
+        a.addEventListener("click", function () {
+          links.classList.remove("is-open");
+          toggle.setAttribute("aria-expanded", "false");
+        });
+      });
+    }
+  })();
+  </script>
+
   <!-- Si ya iniciaste sesión, los botones llevan directo al panel -->
   <script>
   (function () {
@@ -554,6 +708,7 @@
         .replace("Probar Demo", "Mi panel")
         .replace("Abrir Demo Interactiva", "Abrir mi panel")
         .replace("Ingresar a la Demo en Vivo", "Ir a mi panel")
+        .replace("Entrar a Mi Granja", "Ir a mi granja")
         .replace("Ir a la Demo", "Ir a mi panel");
       a.setAttribute("href", real ? "app/?modo=real" : "app/");
     });

@@ -10,7 +10,7 @@
 <link rel="icon" href="logo.png" type="image/png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@600;700;800&display=swap">
 <link rel="stylesheet" href="cuymax-theme.css">
 <link rel="stylesheet" href="styles.css">
 </head>
@@ -104,17 +104,30 @@
       </section>
 
       <section id="tab-panel" class="view active" aria-label="Panel">
-        <div class="page-head">
-          <div><h1>Panel general</h1><div class="sub">Resumen de la granja</div></div>
-          <div class="actions">
-            <div class="segmented" id="seg-evo">
-              <button type="button" data-rango="1">Hoy</button>
-              <button type="button" data-rango="30" class="on">30 días</button>
-              <button type="button" data-rango="365">Año</button>
+        <div class="panel-hero-banner">
+          <div class="panel-hero-bg" aria-hidden="true">
+            <img src="../img/galpon-panorama.jpg" alt="" loading="eager" decoding="async">
+            <div class="panel-hero-veil"></div>
+          </div>
+          <div class="page-head panel-hero-content">
+            <div class="panel-hero-title">
+              <img src="../img/cuy-raza-peru.jpg" alt="Cuy Raza Perú" class="panel-hero-avatar" width="52" height="52">
+              <div>
+                <span class="panel-hero-kicker">🌱 Crianza Tecnificada de Precisión</span>
+                <h1>Panel general</h1>
+                <div class="sub">Resumen productivo y económico de la granja</div>
+              </div>
             </div>
-            <button id="btn-actualizar" type="button" class="icon-btn" title="Actualizar" aria-label="Actualizar datos"><svg viewBox="0 0 24 24" aria-hidden="true" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M20 12a8 8 0 1 1-2.34-5.66M20 4v5h-5"/></svg></button>
-            <button id="btn-rapido" type="button" class="btn">+ Registro rápido</button>
-            <button id="btn-exportar-panel" type="button" class="btn">Exportar reporte CSV</button>
+            <div class="actions">
+              <div class="segmented" id="seg-evo">
+                <button type="button" data-rango="1">Hoy</button>
+                <button type="button" data-rango="30" class="on">30 días</button>
+                <button type="button" data-rango="365">Año</button>
+              </div>
+              <button id="btn-actualizar" type="button" class="icon-btn" title="Actualizar" aria-label="Actualizar datos"><svg viewBox="0 0 24 24" aria-hidden="true" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M20 12a8 8 0 1 1-2.34-5.66M20 4v5h-5"/></svg></button>
+              <button id="btn-rapido" type="button" class="btn">+ Registro rápido</button>
+              <button id="btn-exportar-panel" type="button" class="btn">Exportar reporte CSV</button>
+            </div>
           </div>
         </div>
         <div id="indicadores" class="kpis grid">
@@ -179,6 +192,22 @@
           <div><h1>Registrar</h1><div class="sub">Elige el movimiento y completa solo sus datos</div></div>
           <div class="actions">
             <button id="btn-registrar-mov" type="button" class="btn primary">+ Registrar movimiento</button>
+          </div>
+        </div>
+        <div class="registrar-showcase card">
+          <div class="registrar-showcase-img">
+            <img src="../img/crianza-precision.jpg" alt="Registro de cuyes en el galpón" loading="lazy">
+          </div>
+          <div class="registrar-showcase-body">
+            <span class="badge b-green">Registro rápido en campo</span>
+            <h3>Captura movimientos frente a cada poza en segundos</h3>
+            <p class="muted">Actualiza pesajes semanales, raciones de forraje o balanceado, nacimientos, destetes, ventas y retiros sanitarios desde tu celular.</p>
+            <div class="registrar-quick-btns">
+              <button type="button" class="btn" onclick="document.getElementById('btn-registrar-mov').click(); setTimeout(function(){ var b=document.querySelector('.dlg-accion[data-accion=peso]'); if(b) b.click(); }, 30);">⚖️ Registrar peso</button>
+              <button type="button" class="btn" onclick="document.getElementById('btn-registrar-mov').click(); setTimeout(function(){ var b=document.querySelector('.dlg-accion[data-accion=alimento]'); if(b) b.click(); }, 30);">🌿 Registrar alimento</button>
+              <button type="button" class="btn" onclick="document.getElementById('btn-registrar-mov').click(); setTimeout(function(){ var b=document.querySelector('.dlg-accion[data-accion=parto]'); if(b) b.click(); }, 30);">💛 Registrar parto</button>
+              <button type="button" class="btn" onclick="document.getElementById('btn-registrar-mov').click(); setTimeout(function(){ var b=document.querySelector('.dlg-accion[data-accion=venta]'); if(b) b.click(); }, 30);">💰 Registrar venta</button>
+            </div>
           </div>
         </div>
       </section>
