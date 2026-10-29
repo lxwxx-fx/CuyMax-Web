@@ -28,6 +28,9 @@ __pycache__/
 # Documentacion personal (informes, manuales, propuestas). No se versiona.
 docs/
 
+# Notas internas del asistente (memoria de trabajo). No son parte del proyecto.
+.workbuddy-ai/
+
 # Registros
 *.log
 
