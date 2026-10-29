@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>CuyMax · Iniciar sesión</title>
+  <meta name="description" content="Accede a tu panel de CuyMax para gestionar tu granja de cuyes.">
+  <link rel="icon" href="logo.png" type="image/png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap">
+  <style>
+    :root{
+      --primary:#754B2E; --primary-dark:#53331C; --primary-light:#8E5D38;
+      --bg:#FAF7F0; --surface:#FFFFFF; --border:#E6DFD5;
+      --text:#1C1917; --muted:#665E57; --green:#2E7D32; --red:#C53030;
+      --radius:16px; --font:'Inter',system-ui,-apple-system,sans-serif;
+    }
+    *{box-sizing:border-box;margin:0;padding:0}
+    body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:100vh;display:flex;-webkit-font-smoothing:antialiased}
+    .split{display:grid;grid-template-columns:1.1fr 1fr;min-height:100vh;width:100%}
+    /* Panel izquierdo */
+    .brand-panel{background:linear-gradient(150deg,var(--primary-dark) 0%,var(--primary) 60%,var(--primary-light) 100%);color:#fff;padding:48px;display:flex;flex-direction:column;justify-content:space-between;position:relative;overflow:hidden}
+    .brand-panel::after{content:"";position:absolute;right:-120px;bottom:-120px;width:380px;height:380px;border-radius:50%;background:rgba(255,255,255,.08)}
+    .brand-panel::before{content:"";position:absolute;left:-80px;top:-80px;width:260px;height:260px;border-radius:50%;background:rgba(255,255,255,.06)}
+    .brand-top{display:flex;align-items:center;gap:12px;position:relative;z-index:1}
+    .brand-top img{width:44px;height:44px;border-radius:10px;background:#fff;padding:2px}
+    .brand-top strong{font-size:22px;font-weight:800;display:block;line-height:1}
+    .brand-top span{font-size:12px;opacity:.75;letter-spacing:.6px;text-transform:uppercase}
+    .brand-mid{position:relative;z-index:1;margin:40px 0}
+    .brand-mid h1{font-size:38px;line-height:1.15;font-weight:800;letter-spacing:-.8px;margin-bottom:14px}
+    .brand-mid p{font-size:16px;opacity:.85;max-width:440px;line-height:1.6}
+    .brand-feats{list-style:none;display:grid;gap:12px;margin-top:28px;position:relative;z-index:1}
+    .brand-feats li{display:flex;gap:10px;align-items:center;font-size:14px;background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.18);padding:10px 14px;border-radius:12px;backdrop-filter:blur(4px)}
+    .brand-foot{font-size:12px;opacity:.65;position:relative;z-index:1}
+    /* Panel derecho */
+    .form-panel{display:flex;align-items:center;justify-content:center;padding:40px 24px}
+    .card{background:var(--surface);border:1px solid var(--border);border-radius:20px;box-shadow:0 18px 50px -18px rgba(83,51,28,.25);padding:36px;width:100%;max-width:420px}
+    .card h2{font-size:24px;font-weight:800;color:var(--primary-dark);letter-spacing:-.4px}
+    .card .sub{font-size:14px;color:var(--muted);margin:6px 0 22px}
+    .tabs{display:flex;background:#F4EFE6;border-radius:999px;padding:4px;margin-bottom:22px}
+    .tabs button{flex:1;border:none;background:transparent;padding:9px;font:inherit;font-size:13px;font-weight:700;color:var(--muted);border-radius:999px;cursor:pointer}
+    .tabs button.on{background:#fff;color:var(--primary-dark);box-shadow:0 1px 4px rgba(0,0,0,.12)}
+    label{display:block;font-size:13px;font-weight:600;color:var(--primary-dark);margin:14px 0 6px}
+    .input-wrap{position:relative}
+    input{width:100%;height:48px;border:1px solid var(--border);border-radius:12px;padding:0 44px 0 14px;font:inherit;font-size:15px;background:#FFFEFB;outline:none;transition:.15s}
+    input:focus{border-color:var(--primary);box-shadow:0 0 0 3px rgba(117,75,46,.15);background:#fff}
+    .eye{position:absolute;right:8px;top:50%;transform:translateY(-50%);border:none;background:none;cursor:pointer;font-size:17px;padding:6px;color:var(--muted)}
+    .btn{width:100%;height:48px;border:none;border-radius:12px;background:var(--primary);color:#fff;font:inherit;font-size:15px;font-weight:800;cursor:pointer;margin-top:22px;box-shadow:0 8px 20px rgba(117,75,46,.35);transition:.15s}
+    .btn:hover{background:var(--primary-dark);transform:translateY(-1px)}
+    .btn:disabled{opacity:.6;cursor:wait;transform:none}
+    .links{display:flex;justify-content:space-between;margin-top:16px;font-size:13px}
+    .links button,.links a{background:none;border:none;color:var(--primary);font:inherit;font-weight:600;cursor:pointer;text-decoration:underline;text-underline-offset:3px;padding:0}
+    .msg{min-height:20px;font-size:13px;font-weight:600;margin-top:14px}
+    .msg.err{color:var(--red);background:#FDF0F0;border-radius:8px;padding:8px 12px}
+    .msg.ok{color:var(--green);background:#EFF8F0;border-radius:8px;padding:8px 12px}
+    .back{display:inline-flex;margin-bottom:18px;font-size:13px;font-weight:600;color:var(--muted);text-decoration:none}
+    .back:hover{color:var(--primary)}
+    @media(max-width:900px){
+      .split{grid-template-columns:1fr}
+      .brand-panel{display:none}
+      .form-panel{padding:24px 16px}
+    }
+  </style>
+</head>
+<body>
+  <div class="split">
+    <div class="brand-panel">
+      <div class="brand-top">
+        <img src="logo.png" alt="CuyMax">
+        <div><strong>CuyMax</strong><span>Crianza de precisión</span></div>
+      </div>
+      <div class="brand-mid">
+        <h1>Gestiona tu granja con datos reales.</h1>
+        <p>Accede a tu panel privado: lotes, pesajes, partos, costos y rentabilidad. Solo usuarios registrados.</p>
+        <ul class="brand-feats">
+          <li>✓ &nbsp;Tus datos sincronizados en la nube</li>
+          <li>✓ &nbsp;Funciona en celular y PC</li>
+        </ul>
+      </div>
+      <div class="brand-foot">© 2026 CuyMax · Sistema de Crianza de Precisión</div>
+    </div>
+
+    <div class="form-panel">
+      <div class="card">
+        <a class="back" href="./">← Volver al sitio</a>
+        <h2 id="titulo">Bienvenido de nuevo</h2>
+        <p class="sub" id="subtitulo">Inicia sesión para abrir la demo privada.</p>
+
+        <div class="tabs" id="tabs">
+          <button type="button" id="tab-login" class="on">Entrar</button>
+          <button type="button" id="tab-reg">Crear cuenta</button>
+        </div>
+
+        <form id="f-auth" autocomplete="on">
+          <div id="campos-nombre" hidden>
+            <label for="nombres">Nombres</label>
+            <div class="input-wrap">
+              <input id="nombres" type="text" placeholder="Ej. Juan" autocomplete="given-name" style="padding-right:14px">
+            </div>
+            <label for="apellidos">Apellidos</label>
+            <div class="input-wrap">
+              <input id="apellidos" type="text" placeholder="Ej. Pérez" autocomplete="family-name" style="padding-right:14px">
+            </div>
+          </div>
+          <label for="email">Email</label>
+          <div class="input-wrap">
+            <input id="email" type="email" placeholder="tucorreo@granja.com" required autocomplete="email" style="padding-right:14px">
+          </div>
+          <label for="pass">Contraseña</label>
+          <div class="input-wrap">
+            <input id="pass" type="password" placeholder="••••••••" required minlength="6" autocomplete="current-password">
+            <button type="button" class="eye" id="ver" title="Mostrar / ocultar">👁</button>
+          </div>
+          <button class="btn" id="btn-go" type="submit">Iniciar sesión →</button>
+          <div class="msg" id="msg" role="alert"></div>
+        </form>
+
+        <div class="links">
+          <button type="button" id="btn-reset">¿Olvidaste tu contraseña?</button>
+          <a href="./">Cancelar</a>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
+  <script src="firebase-config.js"></script>
+  <script>
+  (function(){
+    "use strict";
+    var msg = document.getElementById("msg");
+    var btn = document.getElementById("btn-go");
+    var modo = "login"; // login | registro
+    var tabLogin = document.getElementById("tab-login");
+    var tabReg = document.getElementById("tab-reg");
+
+    function pintarMsg(t, ok){
+      msg.className = "msg " + (t ? (ok ? "ok" : "err") : "");
+      msg.textContent = t || "";
+    }
+    function traducir(code){
+      if(!code) return "Ocurrió un error. Intenta de nuevo.";
+      if(code.indexOf("user-not-found")>=0) return "⚠ No existe cuenta con ese email. Ve a Crear cuenta para registrarte.";
+      if(code.indexOf("invalid-credential")>=0 || code.indexOf("wrong-password")>=0 || code.indexOf("invalid-login-credentials")>=0) return "⚠ Email o contraseña incorrectos. Si es tu primera vez, ve a Crear cuenta.";
+      if(code.indexOf("email-already-in-use")>=0) return "Ese email ya está registrado. Ve a Entrar e inicia sesión.";
+      if(code.indexOf("weak-password")>=0) return "Contraseña muy débil: usa 6+ caracteres.";
+      if(code.indexOf("invalid-email")>=0) return "Email no válido.";
+      if(code.indexOf("too-many-requests")>=0) return "Demasiados intentos. Espera unos minutos.";
+      if(code.indexOf("network-request-failed")>=0) return "Sin conexión. Revisa tu internet.";
+      if(code.indexOf("operation-not-allowed")>=0) return "Habilita Email/Contraseña en Firebase Console.";
+      return "No se pudo completar: " + code;
+    }
+
+    // Config pendiente
+    if(typeof FIREBASE_CONFIG==="undefined" || (FIREBASE_CONFIG.apiKey||"").indexOf("PEGA-AQUI")===0){
+      pintarMsg("Falta configurar Firebase: edita firebase-config.js con tu apiKey y appId.", false);
+      btn.disabled = true;
+      return;
+    }
+    firebase.initializeApp(FIREBASE_CONFIG);
+    var auth = firebase.auth();
+
+    // A dónde volver después de entrar: /app/ (demo) o /app/?modo=real (Monitorear)
+    function destino(){
+      var q = "";
+      try { q = new URLSearchParams(location.search).get("next") || ""; } catch(e) { q = ""; }
+      if (q.charAt(0) === "/" && q.charAt(1) !== "/" && q.indexOf(":") < 0) { return q; }
+      return "app/";
+    }
+
+    // Si ya hay sesión, entra directo
+    auth.onAuthStateChanged(function(u){
+      if(u){ window.location.replace(destino()); }
+    });
+
+    function setModo(m){
+      modo = m;
+      var login = (m==="login");
+      tabLogin.classList.toggle("on", login);
+      tabReg.classList.toggle("on", !login);
+      document.getElementById("campos-nombre").hidden = login;
+      document.getElementById("titulo").textContent = login ? "Bienvenido de nuevo" : "Crea tu cuenta";
+      document.getElementById("subtitulo").textContent = login ? "Inicia sesión para abrir la demo privada." : "Regístrate gratis para probar la demo.";
+      btn.textContent = login ? "Iniciar sesión →" : "Crear cuenta →";
+      pintarMsg("", true);
+    }
+    tabLogin.addEventListener("click", function(){ setModo("login"); });
+    tabReg.addEventListener("click", function(){ setModo("registro"); });
+
+    document.getElementById("ver").addEventListener("click", function(){
+      var p = document.getElementById("pass");
+      p.type = (p.type==="password") ? "text" : "password";
+    });
+
+    document.getElementById("f-auth").addEventListener("submit", function(ev){
+      ev.preventDefault();
+      var email = document.getElementById("email").value.trim();
+      var pass = document.getElementById("pass").value;
+      var nombres = document.getElementById("nombres").value.trim();
+      var apellidos = document.getElementById("apellidos").value.trim();
+      if(!email || pass.length<6){ pintarMsg("Ingresa email válido y clave de 6+ caracteres.", false); return; }
+      if(modo==="registro" && (!nombres || !apellidos)){ pintarMsg("Escribe tus nombres y apellidos para crear la cuenta.", false); return; }
+      btn.disabled = true;
+      btn.textContent = "Verificando…";
+      pintarMsg("", true);
+      var prom = (modo==="login")
+        ? auth.signInWithEmailAndPassword(email, pass)
+        : auth.createUserWithEmailAndPassword(email, pass).then(function(cred){
+            return cred.user.updateProfile({ displayName: nombres + " " + apellidos });
+          });
+      prom.then(function(){
+        pintarMsg("Acceso correcto. Abriendo panel…", true);
+        window.location.replace(destino());
+      }).catch(function(e){
+        var t = traducir(e && e.code);
+        btn.disabled = false;
+        setModo(modo);
+        pintarMsg(t, false);
+      });
+    });
+
+    document.getElementById("btn-reset").addEventListener("click", function(){
+      var email = document.getElementById("email").value.trim();
+      if(!email){ pintarMsg("Escribe tu email arriba y luego pulsa recuperar.", false); return; }
+      auth.sendPasswordResetEmail(email).then(function(){
+        pintarMsg("Te enviamos un correo para restablecer tu clave.", true);
+      }).catch(function(e){ pintarMsg(traducir(e && e.code), false); });
+    });
+  })();
+  </script>
+</body>
+</html>

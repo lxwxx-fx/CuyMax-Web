@@ -1,0 +1,478 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#754B2E">
+<meta name="description" content="CuyMax: registro y control productivo de cuyes.">
+<title>CuyMax · Panel</title>
+<link rel="manifest" href="manifiesto.webmanifest">
+<link rel="icon" href="logo.png" type="image/png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap">
+<link rel="stylesheet" href="cuymax-theme.css">
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+<div class="app">
+  <aside class="sidebar" aria-label="Navegación principal">
+    <div class="brand">
+      <span class="brand-mark"><img src="logo.png" alt="CuyMax" width="26" height="26"></span>
+      <span class="brand-txt"><strong>CuyMax</strong><span>Crianza de precisión</span></span>
+    </div>
+    <div class="nav-group">
+      <div class="nav-label">Principal</div>
+      <button type="button" class="nav-item active" data-tab="panel">
+        <svg viewBox="0 0 24 24" aria-hidden="true" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="8" height="8" rx="2"/><rect x="13" y="3" width="8" height="8" rx="2"/><rect x="3" y="13" width="8" height="8" rx="2"/><rect x="13" y="13" width="8" height="8" rx="2"/></svg>
+        Panel
+      </button>
+      <button type="button" class="nav-item" data-tab="lote">
+        <svg viewBox="0 0 24 24" aria-hidden="true" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 7V5h16v2h-2v12h-3v2H9v-2H6V7H4zm4 0v10h8V7H8z"/></svg>
+        Poza
+      </button>
+      <button type="button" class="nav-item" data-tab="registrar">
+        <svg viewBox="0 0 24 24" aria-hidden="true" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 5h2v6h6v2h-6v6h-2v-6H5v-2h6V5z"/></svg>
+        Registrar
+      </button>
+      <button type="button" class="nav-item" data-tab="avisos">
+        <svg viewBox="0 0 24 24" aria-hidden="true" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3a6 6 0 0 0-6 6v4l-2 3h16l-2-3V9a6 6 0 0 0-6-6zm0 19a2.5 2.5 0 0 0 2.45-2H9.55A2.5 2.5 0 0 0 12 22z"/></svg>
+        Avisos
+        <span class="tail oculto" id="tail-avisos">0</span>
+      </button>
+      <button type="button" class="nav-item" data-tab="registros">
+        <svg viewBox="0 0 24 24" aria-hidden="true" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><path d="M8 6h13M8 12h13M8 18h13M3.5 6h.01M3.5 12h.01M3.5 18h.01"/></svg>
+        Últimos registros
+      </button>
+      <button type="button" class="nav-item" data-tab="asistente">
+        <svg viewBox="0 0 24 24" aria-hidden="true" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12a8 8 0 0 1-8 8H4l2.3-2.9A8 8 0 1 1 21 12z"/><path d="M8.5 12h.01M12 12h.01M15.5 12h.01"/></svg>
+        Asistente
+      </button>
+    </div>
+    <div class="side-foot">
+      <div class="side-card">
+        <b id="granja-nombre">Mi granja</b>
+        <p id="granja-meta">Granja <span id="granja-id">1</span></p>
+        <p class="mini muted oculto" id="granja-privada">Datos privados de tu cuenta</p>
+        <p class="mini muted" id="auth-user" style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">Verificando sesión…</p>
+        <p><span class="badge b-amber" id="badge-demo">Modo demo</span><span class="badge b-green oculto" id="badge-real">Datos reales</span></p>
+        <button id="btn-ajustes" type="button" class="btn sm">Ajustes</button>
+        <button type="button" class="btn sm" onclick="window.cuymaxSalir ? window.cuymaxSalir() : (location.href='../login.html')" style="width:100%;margin-top:8px;">Cerrar sesión</button>
+        <a href="../" class="btn sm" style="display:flex; align-items:center; justify-content:center; gap:4px; margin-top:8px; text-decoration:none; color:inherit; font-size:12px;">← Volver al sitio web</a>
+      </div>
+    </div>
+  </aside>
+
+  <div class="main">
+    <header class="topbar">
+      <div class="crumbs">Mi granja <span class="sep">/</span> <b id="crumb-actual">Panel</b></div>
+      <div class="search">
+        <svg viewBox="0 0 24 24" aria-hidden="true" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg>
+        <input id="buscador" type="search" placeholder="Buscar poza o hembra...">
+      </div>
+      <button class="icon-btn" id="btn-tema" type="button" title="Tema claro/oscuro" aria-label="Cambiar tema">
+        <svg viewBox="0 0 24 24" aria-hidden="true" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg>
+      </button>
+      <button class="icon-btn" id="btn-campana" type="button" title="Avisos" aria-label="Ver avisos">
+        <svg viewBox="0 0 24 24" aria-hidden="true" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3a6 6 0 0 0-6 6v4l-2 3h16l-2-3V9a6 6 0 0 0-6-6zm0 19a2.5 2.5 0 0 0 2.45-2H9.55A2.5 2.5 0 0 0 12 22z"/></svg>
+        <span class="ping oculto" id="ping-avisos"></span>
+      </button>
+    </header>
+
+    <div class="content">
+      <section id="ajustes" class="card oculto" aria-label="Ajustes">
+        <div class="card-head"><div><h3>Ajustes</h3><div class="sub" id="ajustes-sub">Granja con la que trabaja la app</div></div></div>
+        <div id="cfg-granja-wrap">
+          <label for="cfg-granja">Granja (ID)</label>
+          <input id="cfg-granja" type="number" min="1" value="1" inputmode="numeric">
+          <label for="cfg-clave">Clave de la API local (opcional)</label>
+          <input id="cfg-clave" type="password" autocomplete="off" placeholder="Solo si el servidor usa API_TOKEN">
+        </div>
+        <label for="cfg-nombre">Nombre de la granja</label>
+        <input id="cfg-nombre" type="text" placeholder="Ej. Granja Los Andes">
+        <p class="mini muted" style="margin:10px 0 2px;">Precios (para la parte económica)</p>
+        <label for="cfg-balanceado">Balanceado (S/ por kg)</label>
+        <input id="cfg-balanceado" type="number" step="any" min="0" inputmode="decimal" placeholder="Ej. 1.20">
+        <label for="cfg-forraje">Forraje (S/ por kg)</label>
+        <input id="cfg-forraje" type="number" step="any" min="0" inputmode="decimal" placeholder="Ej. 0.30">
+        <label for="cfg-cuy">Cuy (S/ por unidad)</label>
+        <input id="cfg-cuy" type="number" step="any" min="0" inputmode="decimal" placeholder="Ej. 24">
+        <div class="actions">
+          <button id="cfg-guardar" type="button" class="btn primary">Guardar</button>
+          <button id="btn-cerrar-ajustes" type="button" class="btn">Cerrar</button>
+        </div>
+      </section>
+
+      <section id="tab-panel" class="view active" aria-label="Panel">
+        <div class="page-head">
+          <div><h1>Panel general</h1><div class="sub">Resumen de la granja</div></div>
+          <div class="actions">
+            <div class="segmented" id="seg-evo">
+              <button type="button" data-rango="1">Hoy</button>
+              <button type="button" data-rango="30" class="on">30 días</button>
+              <button type="button" data-rango="365">Año</button>
+            </div>
+            <button id="btn-actualizar" type="button" class="icon-btn" title="Actualizar" aria-label="Actualizar datos"><svg viewBox="0 0 24 24" aria-hidden="true" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M20 12a8 8 0 1 1-2.34-5.66M20 4v5h-5"/></svg></button>
+            <button id="btn-rapido" type="button" class="btn">+ Registro rápido</button>
+            <button id="btn-exportar-panel" type="button" class="btn">Exportar reporte CSV</button>
+          </div>
+        </div>
+        <div id="indicadores" class="kpis grid">
+          <div class="kpi"><div class="kpi-top"><span class="chip-icon v"><svg viewBox="0 0 24 24" aria-hidden="true" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/></svg></span><span class="kpi-label">Partos próximos</span></div><div class="kpi-value" id="kpi-partos">–</div><div class="kpi-bottom"><span class="delta flat" id="delta-partos">–</span></div></div>
+          <div class="kpi"><div class="kpi-top"><span class="chip-icon g"><svg viewBox="0 0 24 24" aria-hidden="true" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><circle cx="8" cy="8" r="3"/><circle cx="16" cy="8" r="3"/><path d="M3 20c0-3 2.5-5 5-5s5 2 5 5M11 20c0-3 2.5-5 5-5s5 2 5 5"/></svg></span><span class="kpi-label">Cuyes vivos</span></div><div class="kpi-value" id="kpi-vivos">–</div><div class="kpi-bottom"><span class="delta flat" id="delta-vivos">–</span></div></div>
+          <div class="kpi"><div class="kpi-top"><span class="chip-icon r"><svg viewBox="0 0 24 24" aria-hidden="true" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3l8 3v6c0 5-3.5 8-8 9-4.5-1-8-4-8-9V6l8-3z"/></svg></span><span class="kpi-label">Pozas en retiro</span></div><div class="kpi-value" id="kpi-retiro">–</div><div class="kpi-bottom"><span class="delta flat" id="delta-retiro">–</span></div></div>
+          <div class="kpi"><div class="kpi-top"><span class="chip-icon b"><svg viewBox="0 0 24 24" aria-hidden="true" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 17l6-6 4 4 8-8M15 7h6v6"/></svg></span><span class="kpi-label">Margen total</span></div><div class="kpi-value" id="kpi-margen">–</div><div class="kpi-bottom"><span class="delta flat" id="delta-margen">–</span></div></div>
+        </div>
+        <div class="grid grid-2 mt panel-charts">
+        <div class="card">
+          <div class="card-head"><div><h3>Evolución de población e ingresos</h3><div class="sub" id="sub-evo">Últimos 30 días</div></div><div class="legend" id="leyenda-panel"></div></div>
+          <div class="chart-box"><canvas id="grafica-panel" aria-label="Evolución de población e ingresos" role="img"></canvas></div>
+        </div>
+        <div class="card">
+          <div class="card-head"><div><h3>Nacimientos y salidas</h3><div class="sub">Cabezas por mes · últimos 8 meses</div></div><div class="legend" id="leyenda-nac"></div></div>
+          <div class="chart-box"><canvas id="grafica-nac" aria-label="Nacimientos y salidas por mes" role="img"></canvas></div>
+          <div class="empty oculto" id="vacio-nac"><span class="ico"><svg viewBox="0 0 24 24" aria-hidden="true" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 17l6-6 4 4 8-8M15 7h6v6"/></svg></span><b>Aún no hay suficiente historial</b><p>Registra partos y ventas para ver esta tendencia.</p></div>
+        </div>
+        </div>
+        <div class="grid grid-2 mt">
+          <div class="card"><div class="card-head"><div><h3>Partos próximos</h3><div class="sub">Próximos 10 días</div></div></div><div id="partos" aria-live="polite"></div></div>
+          <div class="card"><div class="card-head"><div><h3>Pozas</h3><div class="sub">Estado y ocupación</div></div></div><div id="lotes" aria-live="polite"></div></div>
+        </div>
+        <div class="card mt"><div class="card-head"><div><h3>Resumen económico</h3><div class="sub">Por poza</div></div></div><div id="economico" aria-live="polite"></div></div>
+        <div class="card mt"><div class="card-head"><div><h3>En retiro sanitario</h3><div class="sub" id="sub-retiro">No vender todavía</div></div></div><div id="retiros" aria-live="polite"></div></div>
+      </section>
+
+      <section id="tab-lote" class="view" aria-label="Poza">
+        <div class="page-head">
+          <div><h1>Ficha de poza</h1><div class="sub">Estado productivo y curva de peso</div></div>
+        </div>
+        <div class="card">
+          <div class="card-head">
+            <select id="sel-lote" class="select-inline" aria-label="Elegir poza"></select>
+            <span class="badge b-green" id="badge-lote">–</span>
+          </div>
+          <div id="ficha" aria-live="polite">Elige una poza.</div>
+          <button id="btn-exportar-lote" type="button" class="btn sm" style="margin-left:auto;">Exportar esta poza (CSV)</button>
+          <div class="fila-prog"><span id="prog-etiqueta">Cuyes vivos de la poza</span><div class="prog" id="prog-lote"><i></i></div></div>
+        </div>
+        <div class="kpis grid mt" id="kpis-lote">
+          <div class="kpi"><div class="kpi-top"><span class="chip-icon g"><svg viewBox="0 0 24 24" aria-hidden="true" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><circle cx="8" cy="8" r="3"/><circle cx="16" cy="8" r="3"/><path d="M3 20c0-3 2.5-5 5-5s5 2 5 5M11 20c0-3 2.5-5 5-5s5 2 5 5"/></svg></span><span class="kpi-label">Vivos</span></div><div class="kpi-value" id="kv-vivos">–</div><div class="kpi-bottom"><span class="delta flat" id="delta-vivos-lote">–</span></div></div>
+          <div class="kpi"><div class="kpi-top"><span class="chip-icon r"><svg viewBox="0 0 24 24" aria-hidden="true" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3l8 3v6c0 5-3.5 8-8 9-4.5-1-8-4-8-9V6l8-3z"/></svg></span><span class="kpi-label">Mortalidad</span></div><div class="kpi-value" id="kv-mort">–</div><div class="kpi-bottom"><span class="delta flat" id="delta-mort">–</span></div></div>
+          <div class="kpi"><div class="kpi-top"><span class="chip-icon b"><svg viewBox="0 0 24 24" aria-hidden="true" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 7h12l2 13H4L6 7zm3 0a3 3 0 0 1 6 0"/></svg></span><span class="kpi-label">Último peso</span></div><div class="kpi-value" id="kv-peso">–</div><div class="kpi-bottom"><span class="delta flat" id="delta-peso">–</span></div></div>
+          <div class="kpi"><div class="kpi-top"><span class="chip-icon a"><svg viewBox="0 0 24 24" aria-hidden="true" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 10h16v11H4zM4 10l2-6h12l2 6"/></svg></span><span class="kpi-label">Alimento</span></div><div class="kpi-value" id="kv-alim">–</div><div class="kpi-bottom"><span class="delta flat" id="delta-alim">–</span></div></div>
+        </div>
+        <div class="grid mt lote-layout">
+        <div class="card">
+          <div class="card-head"><div><h3>Curva de peso</h3><div class="sub">Promedio en gramos</div></div><div class="legend" id="leyenda-lote"></div></div>
+          <div class="chart-box chart-alto"><canvas id="grafica-peso" aria-label="Curva de peso promedio de la poza" role="img"></canvas></div>
+          <div class="empty oculto" id="vacio-curva"><span class="ico"><svg viewBox="0 0 24 24" aria-hidden="true" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 17l6-6 4 4 8-8M15 7h6v6"/></svg></span><b>Aún no hay curva para esta poza</b><p>Registra al menos dos pesajes para ver la curva.</p></div>
+        </div>
+        <div class="card" id="ficha-eco-card">
+          <div class="card-head"><div><h3>Economía de la poza</h3></div></div>
+          <div id="ficha-eco" aria-live="polite"></div>
+        </div>
+        </div>
+      </section>
+
+      <section id="tab-registrar" class="view" aria-label="Registrar">
+        <div class="page-head">
+          <div><h1>Registrar</h1><div class="sub">Elige el movimiento y completa solo sus datos</div></div>
+          <div class="actions">
+            <button id="btn-registrar-mov" type="button" class="btn primary">+ Registrar movimiento</button>
+          </div>
+        </div>
+      </section>
+
+      <section id="tab-avisos" class="view" aria-label="Avisos">
+        <div class="fila-titulo">
+          <h2>Avisos</h2>
+          <button id="btn-generar" type="button" class="btn-secundario"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 12a8 8 0 1 1-2.34-5.66M20 4v5h-5"/></svg> Generar avisos de hoy</button>
+        </div>
+        <div class="toolbar">
+          <div class="segmented" id="seg-avisos">
+            <button type="button" data-f="todos" class="on">Todos</button>
+            <button type="button" data-f="pendientes">Pendientes</button>
+          </div>
+        </div>
+        <div id="avisos" class="lista" aria-live="polite"><div class="skeleton"></div><div class="skeleton"></div></div>
+      </section>
+
+      <section id="tab-registros" class="view" aria-label="Últimos registros">
+        <div class="page-head">
+          <div><h1>Últimos registros</h1><div class="sub">Movimientos recientes de la granja</div></div>
+        </div>
+        <div class="card mt" id="card-registros">
+          <div class="card-head">
+            <div><h3>Últimos registros</h3><div class="sub">Si te equivocaste, puedes borrar un movimiento</div></div>
+          </div>
+          <div id="registros" aria-live="polite"></div>
+        </div>
+      </section>
+
+      <section id="tab-asistente" class="view" aria-label="Asistente">
+        <div class="page-head">
+          <div><h1>Asistente</h1><div class="sub">Cuéntale lo que pasó o pregúntale cómo va la granja</div></div>
+        </div>
+        <div class="card chat-card">
+          <div id="chat-msgs" class="chat-msgs" aria-live="polite"></div>
+          <form id="f-chat" class="chat-form" autocomplete="off">
+            <input id="chat-texto" type="text" maxlength="500" aria-label="Mensaje para el asistente" placeholder="Ej. se murieron 2 cuyes en P-001 por diarrea">
+            <button type="submit" class="btn primary" id="chat-enviar">Enviar</button>
+          </form>
+          <div class="chat-chips" id="chat-chips"></div>
+        </div>
+      </section>
+    </div>
+  </div>
+</div>
+
+<dialog id="dlg-registrar" class="modal" aria-labelledby="dlg-titulo">
+  <div class="modal-head">
+    <div>
+      <h3 id="dlg-titulo">¿Qué quieres registrar?</h3>
+      <div class="sub" id="dlg-sub">Elige el movimiento y completa solo sus datos</div>
+    </div>
+    <button type="button" class="icon-btn" id="dlg-cerrar" aria-label="Cerrar ventana">
+      <svg viewBox="0 0 24 24" aria-hidden="true" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 6l12 12M18 6L6 18"/></svg>
+    </button>
+  </div>
+
+  <div id="dlg-acciones" class="dlg-acciones">
+    <button type="button" class="dlg-accion mov-peso" data-accion="peso">
+      <span class="chip-icon g"><svg viewBox="0 0 24 24" aria-hidden="true" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 7h12l2 13H4L6 7zm3 0a3 3 0 0 1 6 0"/></svg></span>
+      <span class="dlg-txt"><b>Peso</b><em>Promedio de la poza en gramos</em></span>
+    </button>
+    <button type="button" class="dlg-accion mov-muerte" data-accion="muerte">
+      <span class="chip-icon r"><svg viewBox="0 0 24 24" aria-hidden="true" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3l8 3v6c0 5-3.5 8-8 9-4.5-1-8-4-8-9V6l8-3z"/></svg></span>
+      <span class="dlg-txt"><b>Muerte</b><em>Bajas de la poza</em></span>
+    </button>
+    <button type="button" class="dlg-accion mov-alimento" data-accion="alimento">
+      <span class="chip-icon a"><svg viewBox="0 0 24 24" aria-hidden="true" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 19C5 10 11 5 20 4c-1 9-7 15-15 15z"/><path d="M5 19c3-5 7-9 11-11"/></svg></span>
+      <span class="dlg-txt"><b>Alimento</b><em>Consumo de la poza en kilos</em></span>
+    </button>
+    <button type="button" class="dlg-accion mov-parto" data-accion="parto">
+      <span class="chip-icon v"><svg viewBox="0 0 24 24" aria-hidden="true" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 21C7 16.5 3 13 3 8.8 3 6 5.2 4 7.8 4c1.7 0 3.2.9 4.2 2.3C13 5 14.5 4 16.2 4 18.8 4 21 6 21 8.8c0 4.2-4 7.7-9 12.2z"/></svg></span>
+      <span class="dlg-txt"><b>Parto</b><em>Nacimiento registrado</em></span>
+    </button>
+    <button type="button" class="dlg-accion mov-ingreso" data-accion="ingreso">
+      <span class="chip-icon b"><svg viewBox="0 0 24 24" aria-hidden="true" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 4v9m0 0l-3.5-3.5M12 13l3.5-3.5M5 19h14"/></svg></span>
+      <span class="dlg-txt"><b>Ingreso</b><em>Cuyes que llegan por compra</em></span>
+    </button>
+    <button type="button" class="dlg-accion" data-accion="parto_proximo">
+      <span class="chip-icon v"><svg viewBox="0 0 24 24" aria-hidden="true" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M8 3v4M16 3v4M3 11h18M9 16l2 2 4-4"/></svg></span>
+      <span class="dlg-txt"><b>Programar parto</b><em>Fecha estimada de la hembra</em></span>
+    </button>
+    <button type="button" class="dlg-accion" data-accion="destete">
+      <span class="chip-icon g"><svg viewBox="0 0 24 24" aria-hidden="true" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 12h16M14 6l6 6-6 6M10 6l-6 6 6 6"/></svg></span>
+      <span class="dlg-txt"><b>Destete</b><em>Crías que pasan a recría</em></span>
+    </button>
+    <button type="button" class="dlg-accion" data-accion="venta">
+      <span class="chip-icon b"><svg viewBox="0 0 24 24" aria-hidden="true" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18l-2 9H5L3 6zm3 13h.01M17 19h.01"/></svg></span>
+      <span class="dlg-txt"><b>Venta</b><em>Cuyes vendidos por unidad</em></span>
+    </button>
+    <button type="button" class="dlg-accion" data-accion="faena">
+      <span class="chip-icon r"><svg viewBox="0 0 24 24" aria-hidden="true" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 3l12 6-4 8-8-4z"/><path d="M4 21h16"/></svg></span>
+      <span class="dlg-txt"><b>Faena</b><em>Cuyes faenados de la poza</em></span>
+    </button>
+    <button type="button" class="dlg-accion" data-accion="retiro">
+      <span class="chip-icon a"><svg viewBox="0 0 24 24" aria-hidden="true" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3l8 3v6c0 5-3.5 8-8 9-4.5-1-8-4-8-9V6l8-3z"/><path d="M12 8v5M12 16h.01"/></svg></span>
+      <span class="dlg-txt"><b>Retiro sanitario</b><em>Tratamiento y días de espera</em></span>
+    </button>
+  </div>
+
+  <div id="dlg-form" class="oculto">
+    <button type="button" class="dlg-volver" id="dlg-volver">
+      <svg viewBox="0 0 24 24" aria-hidden="true" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 12H5M12 5l-7 7 7 7"/></svg>
+      Cambiar acción
+    </button>
+    <div class="registrar-grid">
+        <div class="dlg-panel oculto" data-accion="peso">
+            <div class="card mov mov-peso">
+            <div class="card-head cab-icono"><span class="chip-icon g"><svg viewBox="0 0 24 24" aria-hidden="true" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 7h12l2 13H4L6 7zm3 0a3 3 0 0 1 6 0"/></svg></span><div><h3>Peso</h3><div class="sub">Promedio de la poza en gramos</div></div></div>
+            <form id="f-peso">
+              <div class="field"><label for="peso-lote">Poza</label>
+              <select id="peso-lote" name="lote" required><option value="">Cargando pozas...</option></select>
+              <p class="hintline oculto" id="peso-hint" aria-live="polite"></p></div>
+              <div class="field"><label for="peso-g">Peso <span class="req" aria-hidden="true">*</span></label>
+              <div class="campo-u"><input id="peso-g" name="peso_g" type="number" step="any" min="20" max="3000" inputmode="decimal" placeholder="Ej. 720" required data-msg="Ingresa el peso en gramos"><span class="u">g</span></div></div>
+              <div class="field"><label for="peso-n">Muestra (opcional)</label>
+              <input id="peso-n" name="animales_pesados" type="number" min="1" inputmode="numeric" placeholder="Cuántos pesaste (10 si lo dejas vacío)"></div>
+              <button type="submit" class="btn primary w-100">Guardar peso</button>
+              <div class="r" aria-live="polite"></div>
+            </form>
+            </div>
+        </div>
+        <div class="dlg-panel oculto" data-accion="muerte">
+            <div class="card mov mov-muerte">
+            <div class="card-head cab-icono"><span class="chip-icon r"><svg viewBox="0 0 24 24" aria-hidden="true" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3l8 3v6c0 5-3.5 8-8 9-4.5-1-8-4-8-9V6l8-3z"/></svg></span><div><h3>Muerte</h3><div class="sub">Bajas de la poza</div></div></div>
+            <form id="f-muerte">
+              <div class="field"><label for="muerte-lote">Poza</label>
+              <select id="muerte-lote" name="lote" required><option value="">Cargando pozas...</option></select></div>
+              <div class="field"><label for="muerte-cant">Cantidad <span class="req" aria-hidden="true">*</span></label>
+              <div class="campo-u"><input id="muerte-cant" name="cantidad" type="number" min="1" inputmode="numeric" placeholder="Ej. 2" required data-msg="Ingresa la cantidad"><span class="u">cuyes</span></div></div>
+              <div class="field"><label for="muerte-causa">Causa (opcional)</label>
+              <input id="muerte-causa" name="causa" type="text" placeholder="Ej. diarrea"></div>
+              <button type="submit" class="btn primary w-100">Guardar muerte</button>
+              <div class="r" aria-live="polite"></div>
+            </form>
+            </div>
+        </div>
+        <div class="dlg-panel oculto" data-accion="alimento">
+            <div class="card mov mov-alimento">
+            <div class="card-head cab-icono"><span class="chip-icon a"><svg viewBox="0 0 24 24" aria-hidden="true" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 19C5 10 11 5 20 4c-1 9-7 15-15 15z"/><path d="M5 19c3-5 7-9 11-11"/></svg></span><div><h3>Alimento</h3><div class="sub">Consumo de la poza en kilos</div></div></div>
+            <form id="f-alimento">
+              <div class="field"><label for="alim-lote">Poza</label>
+              <select id="alim-lote" name="lote" required><option value="">Cargando pozas...</option></select></div>
+              <div class="field"><label for="alim-tipo">Tipo</label>
+              <select id="alim-tipo" name="tipo"><option value="forraje">forraje</option><option value="balanceado">balanceado</option></select></div>
+              <div class="field"><label for="alim-kg">Kilos <span class="req" aria-hidden="true">*</span></label>
+              <div class="campo-u"><input id="alim-kg" name="kg" type="number" step="any" min="0" inputmode="decimal" placeholder="Ej. 12.5" required data-msg="Ingresa los kilos"><span class="u">kg</span></div></div>
+              <button type="submit" class="btn primary w-100">Guardar alimento</button>
+              <div class="r" aria-live="polite"></div>
+            </form>
+            </div>
+        </div>
+        <div class="dlg-panel oculto" data-accion="parto">
+            <div class="card mov mov-parto">
+            <div class="card-head cab-icono"><span class="chip-icon v"><svg viewBox="0 0 24 24" aria-hidden="true" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 21C7 16.5 3 13 3 8.8 3 6 5.2 4 7.8 4c1.7 0 3.2.9 4.2 2.3C13 5 14.5 4 16.2 4 18.8 4 21 6 21 8.8c0 4.2-4 7.7-9 12.2z"/></svg></span><div><h3>Parto</h3><div class="sub">Nacimiento registrado</div></div></div>
+            <form id="f-parto">
+              <div class="field"><label for="parto-hembra">Hembra (opcional si indicas ubicación)</label>
+              <input id="parto-hembra" name="hembra" type="text" placeholder="Ej. H003"></div>
+              <div class="field"><label for="parto-poza">Ubicación (opcional si indicas hembra)</label>
+              <input id="parto-poza" name="poza" type="text" placeholder="Ej. U-01"></div>
+              <div class="field"><label for="parto-vivos">Nacidos vivos <span class="req" aria-hidden="true">*</span></label>
+              <div class="campo-u"><input id="parto-vivos" name="nacidos_vivos" type="number" min="0" inputmode="numeric" placeholder="Ej. 5" required data-msg="Ingresa los nacidos vivos"><span class="u">crías</span></div></div>
+              <div class="field"><label for="parto-muertos">Nacidos muertos</label>
+              <div class="campo-u"><input id="parto-muertos" name="nacidos_muertos" type="number" min="0" inputmode="numeric" placeholder="0"><span class="u">crías</span></div></div>
+              <button type="submit" class="btn primary w-100">Guardar parto</button>
+              <div class="r" aria-live="polite"></div>
+            </form>
+            </div>
+        </div>
+        <div class="dlg-panel oculto" data-accion="ingreso">
+            <div class="card mov mov-ingreso">
+            <div class="card-head cab-icono"><span class="chip-icon b"><svg viewBox="0 0 24 24" aria-hidden="true" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 4v9m0 0l-3.5-3.5M12 13l3.5-3.5M5 19h14"/></svg></span><div><h3>Ingreso</h3><div class="sub">Cuyes que llegan por compra</div></div></div>
+            <div class="segmented" id="seg-ingreso" aria-label="Tipo de ingreso">
+              <button type="button" data-modo="sumar" class="on">Sumar a una poza</button>
+              <button type="button" data-modo="crear">Crear poza nueva</button>
+            </div>
+            <form id="f-ingreso">
+              <div id="ing-grupo-sumar">
+                <div class="field"><label for="ing-lote">Poza</label>
+                <select id="ing-lote" name="lote" required><option value="">Cargando pozas...</option></select></div>
+                <div class="field"><label for="ing-cant">Cantidad de cuyes <span class="req" aria-hidden="true">*</span></label>
+                <div class="campo-u"><input id="ing-cant" name="cantidad" type="number" min="1" inputmode="numeric" placeholder="Ej. 10" required data-msg="Ingresa la cantidad"><span class="u">cuyes</span></div></div>
+              </div>
+              <div id="ing-grupo-crear" class="oculto">
+                <div class="field"><label for="ing-codigo">Código de la poza <span class="req" aria-hidden="true">*</span></label>
+                <input id="ing-codigo" name="codigo" type="text" placeholder="Ej. P-001" data-msg="Ingresa un código"></div>
+                <div class="field"><label for="ing-cant-ini">Cantidad inicial <span class="req" aria-hidden="true">*</span></label>
+                <div class="campo-u"><input id="ing-cant-ini" name="cantidad_inicial" type="number" min="1" inputmode="numeric" placeholder="Ej. 20" data-msg="Ingresa la cantidad"><span class="u">cuyes</span></div></div>
+                <div class="field"><label for="ing-etapa">Etapa</label>
+                <select id="ing-etapa" name="etapa"><option value="engorde">engorde</option><option value="recria">recria</option></select></div>
+                <div class="field"><label for="ing-poza">Ubicación</label>
+                <select id="ing-poza" name="poza_id" data-msg="Elige la ubicación"><option value="">Cargando ubicaciones...</option></select></div>
+              </div>
+              <button type="submit" class="btn primary w-100" id="ing-btn">Guardar ingreso</button>
+              <div class="r" aria-live="polite"></div>
+            </form>
+            </div>
+        </div>
+        <div class="dlg-panel oculto" data-accion="parto_proximo">
+            <div class="card mov">
+            <div class="card-head cab-icono"><span class="chip-icon v"><svg viewBox="0 0 24 24" aria-hidden="true" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M8 3v4M16 3v4M3 11h18"/></svg></span><div><h3>Programar parto</h3><div class="sub">La hembra aparece en partos próximos</div></div></div>
+            <form id="f-parto-prox" autocomplete="off">
+              <div class="field"><label for="prox-hembra">Hembra <span class="req" aria-hidden="true">*</span></label>
+              <input id="prox-hembra" name="hembra" type="text" placeholder="Ej. H003" required data-msg="Ingresa el arete de la hembra"></div>
+              <div class="field"><label for="prox-poza">Ubicación (opcional)</label>
+              <input id="prox-poza" name="poza" type="text" placeholder="Ej. U-01"></div>
+              <div class="field"><label for="prox-fecha">Fecha estimada <span class="req" aria-hidden="true">*</span></label>
+              <input id="prox-fecha" name="fecha_objetivo" type="date" required data-msg="Elige la fecha estimada"></div>
+              <button type="submit" class="btn primary w-100">Programar parto</button>
+              <div class="r" aria-live="polite"></div>
+            </form>
+            </div>
+        </div>
+        <div class="dlg-panel oculto" data-accion="destete">
+            <div class="card mov">
+            <div class="card-head cab-icono"><span class="chip-icon g"><svg viewBox="0 0 24 24" aria-hidden="true" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 12h16M14 6l6 6-6 6"/></svg></span><div><h3>Destete</h3><div class="sub">Las crías pasan a una poza en recría</div></div></div>
+            <form id="f-destete" autocomplete="off">
+              <div class="field"><label for="des-hembra">Hembra <span class="req" aria-hidden="true">*</span></label>
+              <input id="des-hembra" name="hembra" type="text" placeholder="Ej. H003" required data-msg="Ingresa el arete de la hembra"></div>
+              <div class="field"><label for="des-cant">Crías a destetar <span class="req" aria-hidden="true">*</span></label>
+              <div class="campo-u"><input id="des-cant" name="cantidad" type="number" min="1" inputmode="numeric" placeholder="Ej. 4" required data-msg="Ingresa la cantidad"><span class="u">crías</span></div></div>
+              <div class="field"><label for="des-destino">Poza destino (recría) <span class="req" aria-hidden="true">*</span></label>
+              <input id="des-destino" name="poza_destino" type="text" placeholder="Ej. R-001" required data-msg="Ingresa la poza destino"></div>
+              <button type="submit" class="btn primary w-100">Registrar destete</button>
+              <div class="r" aria-live="polite"></div>
+            </form>
+            </div>
+        </div>
+        <div class="dlg-panel oculto" data-accion="venta">
+            <div class="card mov">
+            <div class="card-head cab-icono"><span class="chip-icon b"><svg viewBox="0 0 24 24" aria-hidden="true" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18l-2 9H5L3 6zm3 13h.01M17 19h.01"/></svg></span><div><h3>Venta</h3><div class="sub">Cuyes vendidos por unidad</div></div></div>
+            <form id="f-venta">
+              <div class="field"><label for="venta-lote">Poza</label>
+              <select id="venta-lote" name="lote" required><option value="">Cargando pozas...</option></select></div>
+              <div class="field"><label for="venta-cant">Cantidad <span class="req" aria-hidden="true">*</span></label>
+              <div class="campo-u"><input id="venta-cant" name="cantidad" type="number" min="1" inputmode="numeric" placeholder="Ej. 10" required data-msg="Ingresa la cantidad"><span class="u">cuyes</span></div></div>
+              <div class="field"><label for="venta-precio">Precio por cuy (S/)</label>
+              <input id="venta-precio" name="precio_unitario" type="number" step="any" min="0" inputmode="decimal" placeholder="Vacío = precio de Ajustes"></div>
+              <button type="submit" class="btn primary w-100">Guardar venta</button>
+              <div class="r" aria-live="polite"></div>
+            </form>
+            </div>
+        </div>
+        <div class="dlg-panel oculto" data-accion="faena">
+            <div class="card mov">
+            <div class="card-head cab-icono"><span class="chip-icon r"><svg viewBox="0 0 24 24" aria-hidden="true" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 3l12 6-4 8-8-4z"/><path d="M4 21h16"/></svg></span><div><h3>Faena</h3><div class="sub">Cuyes faenados de la poza</div></div></div>
+            <form id="f-faena">
+              <div class="field"><label for="faena-lote">Poza</label>
+              <select id="faena-lote" name="lote" required><option value="">Cargando pozas...</option></select></div>
+              <div class="field"><label for="faena-cant">Cantidad <span class="req" aria-hidden="true">*</span></label>
+              <div class="campo-u"><input id="faena-cant" name="cantidad" type="number" min="1" inputmode="numeric" placeholder="Ej. 2" required data-msg="Ingresa la cantidad"><span class="u">cuyes</span></div></div>
+              <button type="submit" class="btn primary w-100">Guardar faena</button>
+              <div class="r" aria-live="polite"></div>
+            </form>
+            </div>
+        </div>
+        <div class="dlg-panel oculto" data-accion="retiro">
+            <div class="card mov">
+            <div class="card-head cab-icono"><span class="chip-icon a"><svg viewBox="0 0 24 24" aria-hidden="true" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3l8 3v6c0 5-3.5 8-8 9-4.5-1-8-4-8-9V6l8-3z"/><path d="M12 8v5M12 16h.01"/></svg></span><div><h3>Retiro sanitario</h3><div class="sub">La poza no se puede vender hasta cumplir los días</div></div></div>
+            <form id="f-retiro" autocomplete="off">
+              <div class="field"><label for="retiro-lote">Poza</label>
+              <select id="retiro-lote" name="lote" required><option value="">Cargando pozas...</option></select></div>
+              <div class="field"><label for="retiro-producto">Producto <span class="req" aria-hidden="true">*</span></label>
+              <input id="retiro-producto" name="producto" type="text" placeholder="Ej. Enrofloxacina 10%" required data-msg="Ingresa el producto usado"></div>
+              <div class="field"><label for="retiro-dias">Días de retiro <span class="req" aria-hidden="true">*</span></label>
+              <div class="campo-u"><input id="retiro-dias" name="dias" type="number" min="1" max="90" inputmode="numeric" placeholder="Ej. 7" required data-msg="Ingresa los días de retiro"><span class="u">días</span></div></div>
+              <button type="submit" class="btn primary w-100">Guardar retiro</button>
+              <div class="r" aria-live="polite"></div>
+            </form>
+            </div>
+        </div>
+    </div>
+  </div>
+</dialog>
+
+<div class="toasts" id="toasts" aria-live="polite"></div>
+
+<script src="vendor/chart.umd.min.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-functions-compat.js"></script>
+<script src="../firebase-config.js"></script>
+<script src="mock-data.js"></script>
+<script src="firestore-data.js"></script>
+<script src="auth-guard.js"></script>
+<script src="app.js"></script>
+<script>
+if ("serviceWorker" in navigator) {
+  window.addEventListener("load", function () {
+    navigator.serviceWorker.register("sw.js").catch(function (e) { console.log(e); });
+  });
+}
+</script>
+</body>
+</html>

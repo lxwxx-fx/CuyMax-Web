@@ -1,0 +1,30 @@
+# Secretos / configuracion local
+server/.env
+server/firebase-creds.json
+functions/.env
+*.env.local
+
+# Dependencias instaladas
+node_modules/
+functions/node_modules/
+
+# Firebase CLI (cache local)
+.firebase/
+firebase-debug.log
+
+# Entornos virtuales de Python
+.venv/
+venv/
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+
+# Registros
+*.log
+
+# Sistema
+Thumbs.db
+Desktop.ini
+.DS_Store

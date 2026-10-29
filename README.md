@@ -1,0 +1,115 @@
+# CuyMax Web
+
+Sitio de **CuyMax** (DC PROJECTS): landing pública + panel PWA de gestión de granjas de cuyes.
+En la nube el panel se conecta a **Cloud Firestore**; en local se sirve una API propia (FastAPI + PostgreSQL).
+
+- Sitio publicado: https://cuymax-by-dc.web.app
+
+## Los dos modos del panel
+
+| Modo | Cómo se entra | Fuente de datos |
+| --- | --- | --- |
+| **Demo** | Botón *Probar Demo* de la landing → `app/` | Datos de ejemplo en memoria (`app/mock-data.js`); no escribe nada |
+| **Monitoreo** | Botón *Monitorear* → `app/?modo=real` | **Cloud Firestore** (datos privados de la cuenta con sesión) |
+
+`MODO_DEMO` solo se activa en el dominio publicado; `MODO_REAL` depende del parámetro `?modo=real`
+en la URL. En local, sin ese parámetro, el panel consume la API de `server/`.
+
+En modo monitoreo cada cuenta es una granja: el campo `granja_id` de todos los documentos es el
+`uid` de Firebase Auth y `firestore.rules` impide leer o escribir los datos de otra cuenta. Una
+cuenta nueva empieza vacía (sin pozas ni registros); el nombre y los precios (balanceado, forraje
+y precio por cuy) se cargan en **Ajustes**.
+
+Colecciones de Firestore: `granjas`, `lotes`, `pozas`, `pesajes`, `mortalidad`,
+`consumo_alimento`, `partos`, `partos_proximos`, `destetes`, `ventas`, `faenas`, `retiros`,
+`avisos_atendidos`.
+
+## Estructura
+
+| Ruta | Contenido |
+| --- | --- |
+| `index.html`, `landing.css` | Landing pública |
+| `login.html` | Acceso (Firebase Auth: correo/contraseña) |
+| `app/` | Panel PWA |
+| `app/firestore-data.js` | Capa de datos reales para el modo monitoreo + asistente |
+| `app/mock-data.js` | Datos de ejemplo y detección del modo |
+| `functions/` | Cloud Function `asistente` (Groq). **No desplegada aún**: requiere plan Blaze |
+| `server/` | API local (FastAPI + PostgreSQL), opcional en la nube |
+| `img/` | Imágenes de la landing |
+| `docs/` | Documentación del proyecto (no se publica) |
+| `iniciar.bat` | Arranque local (API + sitio en `http://localhost:8000`) |
+| `firebase.json`, `.firebaserc` | Configuración de Firebase Hosting |
+| `firestore.rules` | Reglas de Firestore: exigen sesión iniciada |
+| `server/firebase-creds.json` | Cuenta de servicio (NO se versiona; ver `.gitignore`) |
+
+## Requisitos
+
+- Python 3.12+ y `pip install -r server/requirements.txt` (incluye `firebase-admin`)
+- PostgreSQL 18 (solo para la API local; la base de datos `cuyes`)
+- Firebase CLI para desplegar (`npm install -g firebase-tools`)
+
+## Ejecutar en local
+
+1. Crear la base de datos `cuyes` en PostgreSQL.
+2. Copiar `server/.env.example` a `server/.env` y completar los valores.
+3. Instalar dependencias: `pip install -r server/requirements.txt`
+4. Ejecutar `iniciar.bat` (verifica PostgreSQL y el puerto 8000, y abre el navegador).
+5. Abrir http://localhost:8000
+
+Para probar el modo monitoreo en local abre `http://localhost:8000/app/?modo=real`.
+
+## Acceso en local
+
+En local (sin `?modo=real`) el panel **no exige inicio de sesión**: trabaja contra la API
+de `server/` y muestra "Modo local · sin sesión". El modo monitoreo (`?modo=real`) sigue
+exigiendo una sesión de Firebase Auth para leer y escribir en Firestore.
+
+La API local es abierta por defecto. Para protegerla define `API_TOKEN` en `server/.env`
+y pega el mismo valor en **Ajustes → Clave de la API local** del panel; se guarda en el
+navegador y se envía en el encabezado `X-API-Key`.
+
+## Asistente (chat)
+
+El panel tiene un chat en la pestaña **Asistente** con dos motores:
+
+1. **Intérprete de reglas** (`app/firestore-data.js`, función `interpretarAsistente`).
+   Funciona siempre, sin servidor ni clave: reconoce registros («se murieron 2 cuyes en
+   P-001 por diarrea», «10 kg de balanceado para P-001», «peso de P-001 es 720 g»,
+   «programar parto de H003…») y consultas («¿cómo va la poza P-001?», «¿cuántos vivos
+   tiene P-001?», «¿qué avisos tengo?», «¿qué partos vienen?», «¿puedo vender?»).
+   Las acciones de registro **siempre** se muestran como propuesta y solo se guardan si
+   la persona pulsa *Confirmar*.
+
+2. **IA en la nube** (`functions/`, Groq). Entiende lenguaje libre. La clave
+   `GROQ_API_KEY` vive en Secret Manager, nunca en el navegador. Está **desactivada**
+   (`FS_IA_ACTIVA = false`) porque Cloud Functions exige el plan **Blaze**.
+
+### Activar la IA (cuando haya Blaze)
+
+```bash
+# 1. Clave de Groq en Secret Manager (pide el valor, no queda en el repo)
+firebase functions:secrets:set GROQ_API_KEY
+
+# 2. Publicar función + sitio
+firebase deploy --only functions,hosting
+```
+
+Luego poner `var FS_IA_ACTIVA = true;` en `app/firestore-data.js` y volver a desplegar
+Hosting. No hay que tocar nada más: si la función falla, el chat vuelve solo a las reglas.
+
+## Despliegue
+
+```bash
+firebase deploy --only firestore:rules,hosting   # reglas + sitio (landing + panel)
+```
+
+`firebase deploy` **sin** `--only` intenta publicar también `functions/` y falla si el
+proyecto sigue en plan Spark: usa siempre `--only firestore:rules,hosting` (o `desplegar.bat`).
+
+**Reglas de Firestore**: `firestore.rules` solo deja leer y escribir documentos cuyo
+`granja_id` sea el `uid` de la cuenta con sesión. Sin inicio de sesión, o pidiendo datos de
+otra cuenta, la base devuelve 403. Las reglas se publican con el comando anterior.
+
+**Nota de seguridad**: el `apiKey` de Firebase del cliente es público por diseño; lo que protege
+la base son estas reglas. `server/firebase-creds.json` (clave privada del administrador) y
+`server/.env` nunca deben subirse al repositorio.

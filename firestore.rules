@@ -1,0 +1,34 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    /* Cada cuenta es una granja.
+       El campo `granja_id` de cada documento debe ser el uid de Firebase Auth
+       del dueño. Así nadie puede leer ni escribir los datos de otra cuenta,
+       aunque conozca el nombre de la colección o el ID del documento. */
+
+    function sesion() {
+      return request.auth != null && request.auth.uid is string;
+    }
+
+    function esMio() {
+      return sesion() && resource.data.granja_id == request.auth.uid;
+    }
+
+    function seraMio() {
+      return sesion() && request.resource.data.granja_id == request.auth.uid;
+    }
+
+    match /{coleccion}/{documento} {
+      // Consultar solo devuelve documentos de la propia cuenta.
+      allow read: if esMio();
+      // Crear exige que el documento nazca con granja_id = uid.
+      allow create: if seraMio();
+      // Actualizar no permite cambiar de dueño.
+      allow update: if esMio() && seraMio();
+      allow delete: if esMio();
+    }
+
+  }
+}

@@ -1,0 +1,582 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>CuyMax · Crianza y Gestión Inteligente de Cuyes</title>
+  <meta name="description" content="El sistema inteligente para productores de cuyes. Control de pozas, pesajes, curvas de crecimiento, partos y rentabilidad económica.">
+  <link rel="icon" href="logo.png" type="image/png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap">
+  <link rel="stylesheet" href="landing.css">
+
+  <!-- Vista previa al compartir por WhatsApp / Facebook -->
+  <meta property="og:type" content="website">
+  <meta property="og:title" content="CuyMax · Gestión inteligente para tu granja de cuyes">
+  <meta property="og:description" content="Controla tus pozas, pesajes, partos y rentabilidad desde el celular. Funciona sin señal en el galpón.">
+  <meta property="og:image" content="img/panel.png">
+  <meta property="og:url" content="https://cuymax-by-dc.web.app/">
+  <meta name="twitter:card" content="summary_large_image">
+</head>
+<body>
+
+  <!-- Navigation -->
+  <header class="header">
+    <div class="container">
+      <nav class="nav">
+        <a href="#" class="brand">
+          <img src="logo.png" alt="CuyMax Logo">
+          <div class="brand-text">
+            CuyMax
+            <span>Crianza de precisión</span>
+          </div>
+        </a>
+
+        <ul class="nav-links">
+          <li><a href="#caracteristicas">Características</a></li>
+          <li><a href="#panel">Panel</a></li>
+          <li><a href="#comparativa">Beneficios</a></li>
+          <li><a href="#faq">Preguntas</a></li>
+          <li><a href="#contacto">Contáctanos</a></li>
+        </ul>
+
+        <div class="nav-actions">
+          <a href="login.html?next=%2Fapp%2F%3Fmodo%3Dreal" class="btn btn-secondary">
+            <span>📊 Monitorear</span>
+          </a>
+          <a href="login.html?next=%2Fapp%2F" class="btn btn-primary">
+            <span>🚀 Probar Demo</span>
+          </a>
+        </div>
+      </nav>
+    </div>
+  </header>
+
+  <!-- Hero Section -->
+  <section class="hero">
+    <div class="container">
+      <div class="hero-grid">
+        <div class="hero-content">
+          <div class="badge badge-amber">
+            <span>🌱</span> Software Especializado para Galpones y Granjas
+          </div>
+          <h1>Multiplica la rentabilidad de tu granja con <span class="highlight">datos en tiempo real</span></h1>
+          <p class="hero-desc">
+            Olvídate de los cuadernos de apuntes y los cálculos manuales. CuyMax te ayuda a controlar tus pozas, pesajes semanales, alertas de partos y costos de alimento desde tu celular o por Telegram.
+          </p>
+
+          <div class="hero-ctas">
+            <a href="login.html?next=%2Fapp%2F" class="btn btn-primary btn-lg">
+              <span>🚀 Abrir Demo Interactiva</span>
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+            </a>
+            <a href="login.html?next=%2Fapp%2F%3Fmodo%3Dreal" class="btn btn-secondary btn-lg">
+              <span>📊 Monitorear</span>
+            </a>
+            <a href="#caracteristicas" class="btn btn-secondary btn-lg">
+              <span>Conocer funciones</span>
+            </a>
+          </div>
+
+          <div class="hero-trust">
+            <div class="trust-item">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M20 6L9 17l-5-5"/></svg>
+              <span>Sin instalación obligatoria</span>
+            </div>
+            <div class="trust-item">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M20 6L9 17l-5-5"/></svg>
+              <span>Funciona sin internet (Offline)</span>
+            </div>
+            <div class="trust-item">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M20 6L9 17l-5-5"/></svg>
+              <span>Datos listos para probar</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Interactive Preview Mockup -->
+        <div class="mockup-wrapper">
+          <div class="mockup-card">
+            <div class="mockup-header">
+              <div class="mockup-brand">
+                <img src="logo.png" alt="CuyMax" width="22" height="22" style="border-radius:4px;">
+                <span>CuyMax · Panel de Granja</span>
+              </div>
+              <span class="badge badge-green" style="background: rgba(46,125,50,0.30); color:#D1FAE5; border:none;">● Sistema en Vivo</span>
+            </div>
+            <div class="mockup-body">
+              <div class="mockup-alert">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="color:var(--accent-amber); flex-shrink:0;"><path d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
+                <div><strong>Parto inminente:</strong> Hembra <b>H003</b> en la ubicación <b>U-01</b> estimada para mañana.</div>
+              </div>
+
+              <div class="mockup-kpis">
+                <div class="kpi-mini">
+                  <div class="kpi-mini-title">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="8" cy="8" r="3"/><circle cx="16" cy="8" r="3"/><path d="M3 20c0-3 2.5-5 5-5s5 2 5 5M11 20c0-3 2.5-5 5-5s5 2 5 5"/></svg>
+                    Población viva
+                  </div>
+                  <div class="kpi-mini-val">62 cuyes</div>
+                  <div class="kpi-mini-sub">3 pozas activas</div>
+                </div>
+                <div class="kpi-mini">
+                  <div class="kpi-mini-title">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 17l6-6 4 4 8-8M15 7h6v6"/></svg>
+                    Margen proyectado
+                  </div>
+                  <div class="kpi-mini-val">S/ 485.50</div>
+                  <div class="kpi-mini-sub">+18% vs ciclo anterior</div>
+                </div>
+              </div>
+
+              <div class="mockup-chart-placeholder">
+                <div class="mockup-chart-title">
+                  <span>Curva de Ganancia de Peso (Poza P-001)</span>
+                  <b style="color:#1B5E20;">730g / meta 900g</b>
+                </div>
+                <div class="mockup-bars">
+                  <div class="mockup-bar" style="height: 38%;" title="Semana 1: 300g"></div>
+                  <div class="mockup-bar" style="height: 48%;" title="Semana 2: 380g"></div>
+                  <div class="mockup-bar" style="height: 58%;" title="Semana 3: 460g"></div>
+                  <div class="mockup-bar" style="height: 68%;" title="Semana 4: 540g"></div>
+                  <div class="mockup-bar" style="height: 77%;" title="Semana 5: 610g"></div>
+                  <div class="mockup-bar" style="height: 85%;" title="Semana 6: 660g"></div>
+                  <div class="mockup-bar active" style="height: 94%;" title="Semana 7: 730g"></div>
+                </div>
+              </div>
+
+              <div class="mockup-action-bar">
+                <a href="login.html?next=%2Fapp%2F" class="btn btn-primary" style="width:100%; border-radius:8px;">
+                  Ingresar a la Demo en Vivo →
+                </a>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Features Section -->
+  <section class="features-section" id="caracteristicas">
+    <div class="container">
+      <div class="section-head">
+        <span class="badge badge-amber">Herramientas Potentes</span>
+        <h2>Todo lo que tu galpón necesita para escalar</h2>
+        <p>Diseñado específicamente para el ciclo de vida del cuy: reproducción, lactancia, recría y engorde.</p>
+      </div>
+
+      <div class="features-grid">
+        <div class="feature-card">
+          <div class="feature-icon">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="8" height="8" rx="2"/><rect x="13" y="3" width="8" height="8" rx="2"/><rect x="3" y="13" width="8" height="8" rx="2"/><rect x="13" y="13" width="8" height="8" rx="2"/></svg>
+          </div>
+          <h3>Control de Pozas y Etapas</h3>
+          <p>Supervisa cada poza desde el destete hasta la saca comercial. Conoce en qué ubicación está, días de edad y porcentaje de mortalidad.</p>
+        </div>
+
+        <div class="feature-card">
+          <div class="feature-icon">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3l8 3v6c0 5-3.5 8-8 9-4.5-1-8-4-8-9V6l8-3z"/></svg>
+          </div>
+          <h3>Curvas de Peso y Crecimiento</h3>
+          <p>Monitorea la ganancia de peso semanal promedio. Detecta a tiempo si una poza se está retrasando para ajustar la ración alimenticia.</p>
+        </div>
+
+        <div class="feature-card">
+          <div class="feature-icon">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 21C7 16.5 3 13 3 8.8 3 6 5.2 4 7.8 4c1.7 0 3.2.9 4.2 2.3C13 5 14.5 4 16.2 4 18.8 4 21 6 21 8.8c0 4.2-4 7.7-9 12.2z"/></svg>
+          </div>
+          <h3>Semáforo y Alertas de Partos</h3>
+          <p>Previsión exacta de fechas de parto por ubicación y hembra. Acondiciona las camas y nidos a tiempo para evitar aplastamiento de gazapos recién nacidos.</p>
+        </div>
+
+        <div class="feature-card">
+          <div class="feature-icon">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 5h2v6h6v2h-6v6h-2v-6H5v-2h6V5z"/></svg>
+          </div>
+          <h3>Registro Rápido en Segundos</h3>
+          <p>Formularios optimizados para celular: registra pesajes, distribución de forraje o balanceado, ventas y bajas con solo un par de toques.</p>
+        </div>
+
+        <div class="feature-card">
+          <div class="feature-icon">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 1v22M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+          </div>
+          <h3>Rentabilidad y Costo de Alimento</h3>
+          <p>Calcula el costo real de producción por kilo. Conoce el margen exacto en Soles (S/) antes de negociar con tus compradores o restaurantes.</p>
+        </div>
+
+        <div class="feature-card">
+          <div class="feature-icon">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 10h-1.26A8 8 0 1 0 9 20h9a5 5 0 0 0 0-10z"/></svg>
+          </div>
+          <h3>Funciona Offline en el Galpón</h3>
+          <p>Tecnología PWA instalable. ¿Tu galpón no tiene buena señal? La app abre y funciona sin internet gracias a su sistema de caché local.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Comparison Section -->
+  <section class="comparison-section" id="comparativa">
+    <div class="container">
+      <div class="section-head">
+        <span class="badge badge-amber">El Cambio Real</span>
+        <h2>¿Por qué dejar el cuaderno y pasar a CuyMax?</h2>
+        <p>El manejo empírico cuesta dinero en mortandad no detectada y sobrealimentación.</p>
+      </div>
+
+      <div class="comparison-grid">
+        <div class="compare-card bad">
+          <h3>
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><path d="M15 9l-6 6M9 9l6 6"/></svg>
+            Gestión tradicional en cuaderno
+          </h3>
+          <ul class="compare-list">
+            <li>
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#C53030" stroke-width="2.5"><path d="M6 18L18 6M6 6l12 12"/></svg>
+              <span>Partos sorpresa sin preparar las ubicaciones, aumentando la muerte de crías.</span>
+            </li>
+            <li>
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#C53030" stroke-width="2.5"><path d="M6 18L18 6M6 6l12 12"/></svg>
+              <span>Hojas manchadas, mojadas o cuadernos extraviados en el galpón.</span>
+            </li>
+            <li>
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#C53030" stroke-width="2.5"><path d="M6 18L18 6M6 6l12 12"/></svg>
+              <span>Desconocimiento del costo real del alimento balanceado consumido por poza.</span>
+            </li>
+            <li>
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#C53030" stroke-width="2.5"><path d="M6 18L18 6M6 6l12 12"/></svg>
+              <span>Venta tardía de animales que ya superaron su pico de conversión alimenticia.</span>
+            </li>
+          </ul>
+        </div>
+
+        <div class="compare-card good">
+          <h3>
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><path d="M22 4L12 14.01l-3-3"/></svg>
+            Con CuyMax
+          </h3>
+          <ul class="compare-list">
+            <li>
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#2E7D32" stroke-width="2.5"><path d="M20 6L9 17l-5-5"/></svg>
+              <span>Alertas preventivas de partos y destetes directamente en tu pantalla.</span>
+            </li>
+            <li>
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#2E7D32" stroke-width="2.5"><path d="M20 6L9 17l-5-5"/></svg>
+              <span>Datos sincronizados y respaldados en la nube accesibles desde cualquier teléfono.</span>
+            </li>
+            <li>
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#2E7D32" stroke-width="2.5"><path d="M20 6L9 17l-5-5"/></svg>
+              <span>Métricas de margen y ganancia por animal calculadas de forma automática.</span>
+            </li>
+            <li>
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#2E7D32" stroke-width="2.5"><path d="M20 6L9 17l-5-5"/></svg>
+              <span>Saca en el momento exacto (peso objetivo 900g+) maximizando la ganancia.</span>
+            </li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Panel Gallery Section -->
+  <section class="gallery-section" id="panel">
+    <div class="container">
+      <div class="section-head">
+        <span class="badge badge-amber">Mira por dentro</span>
+        <h2>Tu panel, con datos reales de ejemplo</h2>
+        <p>Capturas del sistema funcionando: resumen, curva de peso, registro en campo y avisos.</p>
+      </div>
+
+      <div class="gallery-grid">
+        <figure class="shot-card">
+          <div class="shot-frame">
+            <picture>
+              <source type="image/webp" srcset="img/panel-900.webp 900w, img/panel-1600.webp 1600w" sizes="(max-width: 900px) 92vw, 560px">
+              <img src="img/panel.png" width="1600" height="1012" alt="Panel general de CuyMax: cuyes vivos, margen, evolución de población y nacimientos" loading="lazy" decoding="async">
+            </picture>
+          </div>
+          <figcaption class="shot-body">
+            <h3>Panel general</h3>
+            <p>62 cuyes vivos, S/ 556.84 de margen y evolución de población e ingresos de los últimos 30 días.</p>
+          </figcaption>
+        </figure>
+
+        <figure class="shot-card">
+          <div class="shot-frame">
+            <picture>
+              <source type="image/webp" srcset="img/lote-900.webp 900w, img/lote-1600.webp 1600w" sizes="(max-width: 900px) 92vw, 560px">
+              <img src="img/lote.png" width="1600" height="1012" alt="Ficha de poza P-001 con curva de peso, mortalidad y economía de la poza" loading="lazy" decoding="async">
+            </picture>
+          </div>
+          <figcaption class="shot-body">
+            <h3>Ficha de poza</h3>
+            <p>Curva de 730 g hacia la meta de 900 g, mortalidad del 20 % y margen parcial de S/ 47.54.</p>
+          </figcaption>
+        </figure>
+
+        <figure class="shot-card">
+          <div class="shot-frame">
+            <picture>
+              <source type="image/webp" srcset="img/registrar-900.webp 900w, img/registrar-1600.webp 1600w" sizes="(max-width: 900px) 92vw, 560px">
+              <img src="img/registrar.png" width="1600" height="1012" alt="Ventana de registro para elegir el movimiento: peso, muerte, alimento, parto o ingreso" loading="lazy" decoding="async">
+            </picture>
+          </div>
+          <figcaption class="shot-body">
+            <h3>Registro en campo</h3>
+            <p>Elige el movimiento y completa solo sus datos: peso, bajas, alimento, parto o ingreso, en formularios pensados para usarse con una mano.</p>
+          </figcaption>
+        </figure>
+
+        <figure class="shot-card">
+          <div class="shot-frame">
+            <picture>
+              <source type="image/webp" srcset="img/avisos-900.webp 900w, img/avisos-1600.webp 1600w" sizes="(max-width: 900px) 92vw, 560px">
+              <img src="img/avisos.png" width="1600" height="1012" alt="Bandeja de avisos con partos próximos, destetes y pesajes pendientes" loading="lazy" decoding="async">
+            </picture>
+          </div>
+          <figcaption class="shot-body">
+            <h3>Avisos</h3>
+            <p>Partos próximos, destetes y pesajes pendientes, con botón Atender para cerrarlos desde el celular.</p>
+          </figcaption>
+        </figure>
+
+        <figure class="shot-card telefono">
+          <div class="shot-frame">
+            <picture>
+              <source type="image/webp" srcset="img/movil-400.webp 400w, img/movil-800.webp 800w" sizes="300px">
+              <img src="img/movil.png" width="400" height="860" alt="El panel de CuyMax en un celular" loading="lazy" decoding="async">
+            </picture>
+          </div>
+          <figcaption class="shot-body">
+            <h3>Funciona en tu celular, con o sin señal</h3>
+            <p>CuyMax es una aplicación web instalable (PWA): se agrega a la pantalla de inicio y abre sin internet en el galpón. Cuando vuelve la señal, todo se sincroniza.</p>
+            <ul class="shot-lista">
+              <li>Se instala en Android y iPhone, sin pasar por una tienda de apps</li>
+              <li>Los mismos datos en el celular y en la computadora</li>
+              <li>Tema claro y oscuro para registrar de noche</li>
+            </ul>
+          </figcaption>
+        </figure>
+      </div>
+    </div>
+  </section>
+
+  <!-- CTA Banner -->
+  <section class="cta-banner">
+    <div class="container">
+      <h2>Prueba el sistema ahora mismo</h2>
+      <p>Hemos preparado una versión de prueba interactiva con datos de ejemplo para que explores el panel, registres pesajes y veas cómo funciona en tu teléfono.</p>
+      <a href="login.html?next=%2Fapp%2F" class="btn btn-primary btn-lg">
+        <span>🚀 Abrir Demo Interactiva</span>
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+      </a>
+    </div>
+  </section>
+
+  <!-- FAQ Section -->
+  <section class="faq-section" id="faq">
+    <div class="container">
+      <div class="section-head">
+        <span class="badge badge-amber">Dudas Frecuentes</span>
+        <h2>Preguntas comunes sobre CuyMax</h2>
+      </div>
+
+      <div class="faq-list">
+        <div class="faq-item">
+          <h3 class="faq-pregunta">¿Necesito tener internet dentro del galpón?</h3>
+          <p>No. CuyMax está desarrollado como una Aplicación Web Progresiva (PWA). Cuenta con un Service Worker local que almacena la interfaz en la memoria del dispositivo para que puedas abrirla y consultar información incluso en zonas rurales sin señal.</p>
+        </div>
+
+        <div class="faq-item">
+          <h3 class="faq-pregunta">¿Cómo instalo CuyMax en mi teléfono Android o iPhone?</h3>
+          <p>Solo debes abrir el enlace de la demo desde tu navegador (Chrome o Safari). Aparecerá una opción que dice "Agregar a la pantalla de inicio" o "Instalar aplicación". Al pulsarla, se creará un icono directo con aspecto de app nativa.</p>
+        </div>
+
+        <div class="faq-item">
+          <h3 class="faq-pregunta">¿Qué datos incluye la demo interactiva?</h3>
+          <p>La demo incluye 4 pozas en distintas etapas (Engorde A, Engorde B, Recría A y una poza cerrada con historial de ventas), curvas reales de pesaje semanal, fechas de partos programados y métricas económicas completas.</p>
+        </div>
+
+        <div class="faq-item">
+          <h3 class="faq-pregunta">¿Se puede integrar con un Bot de Telegram o WhatsApp?</h3>
+          <p>Sí, CuyMax cuenta con integración para asistentes por mensajería que procesan lenguaje natural y notas de voz para registrar eventos en la granja mientras trabajas.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Sección Contáctanos -->
+  <section class="contacto-section" id="contacto">
+    <div class="container">
+      <div class="contacto-card">
+        <div class="contacto-head">
+          <h2>Contáctanos</h2>
+          <p class="contacto-sub">¿Listo para transformar la gestión de tu granja? Escríbenos o llámanos hoy mismo.</p>
+        </div>
+
+        <div class="contacto-grid">
+          <div class="contacto-info">
+            <p class="contacto-texto">Si deseas cotizar la implementación de CuyMax en tu granja o requieres soporte técnico inmediato, utiliza cualquiera de nuestros canales de atención directa.</p>
+
+            <div class="soporte-card">
+              <h3 class="soporte-titulo">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2a10 10 0 0 0-8.6 15.1L2 22l5-1.3A10 10 0 1 0 12 2zm0 18.2c-1.5 0-3-.4-4.3-1.2l-.3-.2-3 .8.8-2.9-.2-.3A8.2 8.2 0 1 1 12 20.2zm4.6-6.1c-.3-.1-1.5-.7-1.7-.8-.2-.1-.4-.1-.6.1-.2.3-.6.8-.8 1-.1.2-.3.2-.5.1a6.7 6.7 0 0 1-3.3-2.9c-.3-.4 0-.5.1-.7l.4-.5c.1-.2.1-.4 0-.5l-.8-1.9c-.2-.5-.4-.4-.6-.4h-.5c-.2 0-.5.2-.8.7-.3.7-1 2.4.3 4.6 1.4 2.4 3.4 3.7 5.2 4.2.7.2 1.3.2 1.7.1.5-.1 1.5-.6 1.7-1.2.2-.6.2-1.1.1-1.2 0-.1-.2-.1-.5-.2z"/></svg>
+                Soporte de Emergencia
+              </h3>
+              <p class="soporte-desc">Para consultas urgentes y solicitudes comerciales, escríbenos directamente.</p>
+              <a class="soporte-pill" href="https://wa.me/51988316533?text=Hola%20Braulio%2C%20necesito%20soporte%20sobre%20CuyMax" target="_blank" rel="noopener">
+                <svg width="17" height="17" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2a10 10 0 0 0-8.6 15.1L2 22l5-1.3A10 10 0 1 0 12 2zm0 18.2c-1.5 0-3-.4-4.3-1.2l-.3-.2-3 .8.8-2.9-.2-.3A8.2 8.2 0 1 1 12 20.2zm4.6-6.1c-.3-.1-1.5-.7-1.7-.8-.2-.1-.4-.1-.6.1-.2.3-.6.8-.8 1-.1.2-.3.2-.5.1a6.7 6.7 0 0 1-3.3-2.9c-.3-.4 0-.5.1-.7l.4-.5c.1-.2.1-.4 0-.5l-.8-1.9c-.2-.5-.4-.4-.6-.4h-.5c-.2 0-.5.2-.8.7-.3.7-1 2.4.3 4.6 1.4 2.4 3.4 3.7 5.2 4.2.7.2 1.3.2 1.7.1.5-.1 1.5-.6 1.7-1.2.2-.6.2-1.1.1-1.2 0-.1-.2-.1-.5-.2z"/></svg>
+                <span>Braulio Delgado <b>(+51 988 316 533)</b></span>
+              </a>
+              <a class="soporte-pill" href="https://wa.me/51950254106?text=Hola%20Renato%2C%20necesito%20soporte%20sobre%20CuyMax" target="_blank" rel="noopener">
+                <svg width="17" height="17" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2a10 10 0 0 0-8.6 15.1L2 22l5-1.3A10 10 0 1 0 12 2zm0 18.2c-1.5 0-3-.4-4.3-1.2l-.3-.2-3 .8.8-2.9-.2-.3A8.2 8.2 0 1 1 12 20.2zm4.6-6.1c-.3-.1-1.5-.7-1.7-.8-.2-.1-.4-.1-.6.1-.2.3-.6.8-.8 1-.1.2-.3.2-.5.1a6.7 6.7 0 0 1-3.3-2.9c-.3-.4 0-.5.1-.7l.4-.5c.1-.2.1-.4 0-.5l-.8-1.9c-.2-.5-.4-.4-.6-.4h-.5c-.2 0-.5.2-.8.7-.3.7-1 2.4.3 4.6 1.4 2.4 3.4 3.7 5.2 4.2.7.2 1.3.2 1.7.1.5-.1 1.5-.6 1.7-1.2.2-.6.2-1.1.1-1.2 0-.1-.2-.1-.5-.2z"/></svg>
+                <span>Renato Delgado <b>(+51 950 254 106)</b></span>
+              </a>
+            </div>
+          </div>
+
+          <form class="contacto-form" id="contacto-form">
+            <div class="campo">
+              <label for="c-nombre">Nombre completo</label>
+              <div class="campo-control">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+                <input type="text" id="c-nombre" name="nombre" placeholder="Ej. Juan Pérez" autocomplete="name" required>
+              </div>
+            </div>
+
+            <div class="campo-fila">
+              <div class="campo">
+                <label for="c-correo">Correo electrónico</label>
+                <div class="campo-control">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="4"/><path d="M16 8v5a3 3 0 0 0 6 0v-1a10 10 0 1 0-3.92 7.94"/></svg>
+                  <input type="email" id="c-correo" name="correo" placeholder="Ej. juan@correo.com" autocomplete="email" required>
+                </div>
+              </div>
+              <div class="campo">
+                <label for="c-telefono">Número telefónico</label>
+                <div class="campo-control">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
+                  <input type="tel" id="c-telefono" name="telefono" placeholder="Ej. +51 987 654 321" autocomplete="tel">
+                </div>
+              </div>
+            </div>
+
+            <div class="campo">
+              <label for="c-mensaje">Mensaje o solicitud</label>
+              <textarea id="c-mensaje" name="mensaje" placeholder="Escriba su consulta aquí..." required></textarea>
+            </div>
+
+            <button type="submit" class="btn-enviar">
+              Enviar mensaje
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M22 2L11 13"/><path d="M22 2l-7 20-4-9-9-4 20-7z"/></svg>
+            </button>
+          </form>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Footer -->
+  <footer class="footer">
+    <div class="container">
+      <div class="footer-grid">
+        <div class="footer-marca">
+          <a href="#" class="footer-logo" aria-label="CuyMax">
+            <img src="logo.png" alt="CuyMax">
+          </a>
+          <p class="footer-desc">Evolucionando la crianza y la salud de tus cuyes a través del internet de las cosas (IoT). Crianza de precisión de capital peruano.</p>
+          <div class="footer-social-circ">
+            <a href="https://www.linkedin.com/in/renatodelgadochavarry/" target="_blank" rel="noopener" title="Renato Delgado en LinkedIn" aria-label="Renato Delgado en LinkedIn">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M20.45 20.45h-3.55v-5.57c0-1.33-.03-3.04-1.85-3.04-1.86 0-2.14 1.45-2.14 2.94v5.67H9.35V9h3.41v1.56h.05c.47-.9 1.63-1.85 3.36-1.85 3.6 0 4.27 2.37 4.27 5.46v6.28zM5.34 7.43a2.06 2.06 0 1 1 0-4.12 2.06 2.06 0 0 1 0 4.12zM7.12 20.45H3.55V9h3.57v11.45z"/></svg>
+            </a>
+            <a href="https://www.linkedin.com/in/braulio-delgado-chavarry/" target="_blank" rel="noopener" title="Braulio Delgado en LinkedIn" aria-label="Braulio Delgado en LinkedIn">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M20.45 20.45h-3.55v-5.57c0-1.33-.03-3.04-1.85-3.04-1.86 0-2.14 1.45-2.14 2.94v5.67H9.35V9h3.41v1.56h.05c.47-.9 1.63-1.85 3.36-1.85 3.6 0 4.27 2.37 4.27 5.46v6.28zM5.34 7.43a2.06 2.06 0 1 1 0-4.12 2.06 2.06 0 0 1 0 4.12zM7.12 20.45H3.55V9h3.57v11.45z"/></svg>
+            </a>
+          </div>
+        </div>
+
+        <div class="footer-col">
+          <h4>Navegación</h4>
+          <ul class="footer-links">
+            <li><a href="#">Inicio</a></li>
+            <li><a href="#caracteristicas">Características</a></li>
+            <li><a href="#panel">Panel</a></li>
+            <li><a href="#faq">Preguntas</a></li>
+            <li><a href="#contacto">Contáctanos</a></li>
+          </ul>
+        </div>
+
+        <div class="footer-col">
+          <h4>Datos de Contacto</h4>
+          <ul class="footer-contacto">
+            <li>
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+              <span>Lima, Perú</span>
+            </li>
+            <li>
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2a10 10 0 0 0-8.6 15.1L2 22l5-1.3A10 10 0 1 0 12 2zm0 18.2c-1.5 0-3-.4-4.3-1.2l-.3-.2-3 .8.8-2.9-.2-.3A8.2 8.2 0 1 1 12 20.2zm4.6-6.1c-.3-.1-1.5-.7-1.7-.8-.2-.1-.4-.1-.6.1-.2.3-.6.8-.8 1-.1.2-.3.2-.5.1a6.7 6.7 0 0 1-3.3-2.9c-.3-.4 0-.5.1-.7l.4-.5c.1-.2.1-.4 0-.5l-.8-1.9c-.2-.5-.4-.4-.6-.4h-.5c-.2 0-.5.2-.8.7-.3.7-1 2.4.3 4.6 1.4 2.4 3.4 3.7 5.2 4.2.7.2 1.3.2 1.7.1.5-.1 1.5-.6 1.7-1.2.2-.6.2-1.1.1-1.2 0-.1-.2-.1-.5-.2z"/></svg>
+              <a href="https://wa.me/51950254106?text=Hola%2C%20quiero%20saber%20m%C3%A1s%20sobre%20CuyMax" target="_blank" rel="noopener">(+51) 950 254 106</a>
+            </li>
+            <li>
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><path d="M22 6l-10 7L2 6"/></svg>
+              <a href="mailto:rdeldagochavarry@gmail.com">rdeldagochavarry@gmail.com</a>
+            </li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="footer-bottom">
+        <p>© 2026. Todos los derechos reservados por CUYMAX · Desarrollado por: <a href="https://dc-proyectos.web.app/" target="_blank" rel="noopener">DC PROJECTS</a></p>
+      </div>
+    </div>
+  </footer>
+
+  <!-- Si ya iniciaste sesión, los botones llevan directo al panel -->
+  <script>
+  (function () {
+    "use strict";
+    function haySesion() {
+      try {
+        return !!(localStorage.getItem("cuymax_sesion") ||
+                  sessionStorage.getItem("cuymax_sesion") ||
+                  localStorage.getItem("cuymax_token") ||
+                  sessionStorage.getItem("cuymax_token"));
+      } catch (e) { return false; }
+    }
+    if (!haySesion()) { return; }
+    document.querySelectorAll('a[href^="login.html"]').forEach(function (a) {
+      var real = (a.getAttribute("href") || "").indexOf("modo%3Dreal") >= 0;
+      a.innerHTML = a.innerHTML
+        .replace("Probar Demo", "Mi panel")
+        .replace("Abrir Demo Interactiva", "Abrir mi panel")
+        .replace("Ingresar a la Demo en Vivo", "Ir a mi panel")
+        .replace("Ir a la Demo", "Ir a mi panel");
+      a.setAttribute("href", real ? "app/?modo=real" : "app/");
+    });
+  })();
+  </script>
+
+  <script>
+  (function () {
+    var form = document.getElementById("contacto-form");
+    if (!form) { return; }
+    form.addEventListener("submit", function (e) {
+      e.preventDefault();
+      var nombre = document.getElementById("c-nombre").value.trim();
+      var correo = document.getElementById("c-correo").value.trim();
+      var telefono = document.getElementById("c-telefono").value.trim();
+      var mensaje = document.getElementById("c-mensaje").value.trim();
+      var texto = "Hola, soy " + nombre + ".\n\n" + mensaje +
+                  "\n\nCorreo: " + correo +
+                  "\nTeléfono: " + (telefono || "no indicado");
+      window.open("https://wa.me/51950254106?text=" + encodeURIComponent(texto), "_blank", "noopener");
+    });
+  })();
+  </script>
+
+</body>
+</html>
