@@ -120,7 +120,11 @@ hace ninguna llamada de red (útil para demo o si Groq falla).
 
 - `400` de Groq (el modelo no logró un JSON válido): se reintenta una vez sin
   salida estructurada y se extrae el objeto del texto.
-- `429` de Groq (cupo por minuto): se reintenta con `MODELO_IA_RESERVA`.
+- `429` de Groq (cupo por minuto): se reintenta con `MODELO_IA_RESERVA`
+  (`"ninguno"` desactiva la reserva).
+- Los modelos `gpt-oss` van con `reasoning_effort: "low"` y `max_tokens: 600`:
+  razonan antes de contestar y con poco margen devolvían `content` vacío (sin
+  JSON que leer).
 
 ## Errores frecuentes
 

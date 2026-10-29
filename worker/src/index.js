@@ -76,10 +76,24 @@ const SISTEMA =
   "- consultar_vivos: datos {\"lote\": \"P-001\"}. Pregunta cuántos cuyes vivos hay.\n" +
   "- sin_accion: datos {\"motivo\": \"frase corta en español\"}. " +
   "Úsala si falta un dato obligatorio, el mensaje es ambiguo o no es de la granja. " +
+  "Si es una palabra suelta o no se entiende, el motivo debe sugerir un ejemplo " +
+  "concreto de lo que sí puedes hacer (\"No entendí. Prueba con «se murieron 2 cuyes " +
+  "en P-001» o «¿cómo va la poza P-001?»\"). " +
   "Si es saludo, despedida o agradecimiento, el motivo debe ser una respuesta humana " +
   "y breve acorde (\"¡Hola! ¿En qué te ayudo?\", \"¡De nada! Aquí estoy para lo que necesites.\").\n" +
   "Reglas:\n" +
   "- No inventes datos.\n" +
+  "- Cada mensaje llega SOLO: no recuerdas lo que se habló antes ni lo que respondiste. " +
+  "No escribas respuestas que supongan una conversación en curso (nada de \"¿a qué poza " +
+  "te refieres?\" si nadie habló antes). Si de verdad falta un dato, pide ese dato " +
+  "concreto en UNA frase breve.\n" +
+  "- Si el mensaje es una sola palabra o dos sin verbo (\"poza\", \"poza nueva\", \"peso\", " +
+  "\"parto\"), no preguntes nada: si menciona crear/agregar/nueva, responde que eso se hace " +
+  "en la pestaña Registrar; si no, usa sin_accion con un ejemplo de frase completa que " +
+  "corresponda a una acción de la lista (nunca un ejemplo de crear pozas o lotes).\n" +
+  "- No puedes crear ni borrar pozas, lotes, usuarios ni animales, ni editar registros. " +
+  "Si lo piden, usa sin_accion con una frase breve que diga que eso se hace en la " +
+  "pestaña Registrar del panel. No pidas datos para una acción que no puedes hacer.\n" +
   "- Usa los códigos de poza y hembra del contexto aunque el mensaje los nombre " +
   "aproximados ('poza 1' puede ser P-001). Si hay duda, usa sin_accion.\n" +
   "- El contexto es una ayuda, no un requisito: si el mensaje trae un código claro " +
@@ -223,15 +237,20 @@ function normalizar(obj) {
 /* Una llamada a Groq. `modoJson` pide la salida estructurada (más fiable, pero
    el modelo a veces no logra emitir JSON válido y Groq responde 400). */
 async function llamarGroq(mensaje, ctx, env, modoJson, modelo) {
+  const usado = modelo || env.MODELO_IA || "openai/gpt-oss-120b";
   const cuerpo = {
-    model: modelo || env.MODELO_IA || "openai/gpt-oss-120b",
+    model: usado,
     temperature: 0.1,
-    max_tokens: 300,
+    /* 600 y no 300: los modelos gpt-oss gastan tokens "pensando" y con poco
+       margen devuelven content vacío (y entonces no hay JSON que leer). */
+    max_tokens: 600,
     messages: [
       { role: "system", content: SISTEMA + bloqueContexto(ctx) },
       { role: "user", content: mensaje }
     ]
   };
+  /* gpt-oss razona antes de contestar; con "low" piensa menos y contesta igual. */
+  if (/^openai\/gpt-oss/.test(usado)) { cuerpo.reasoning_effort = "low"; }
   if (modoJson) { cuerpo.response_format = { type: "json_object" }; }
 
   const respuesta = await fetch(URL_GROQ, {
@@ -255,20 +274,26 @@ async function llamarGroq(mensaje, ctx, env, modoJson, modelo) {
   return (((devuelto.choices || [])[0] || {}).message || {}).content || "";
 }
 
+/* Modelo de reserva: se usa si el principal se queda sin cupo. Los límites de
+   Groq son por modelo, así que esto da aire en el plan gratis. "ninguno" lo apaga. */
+function modeloReserva(env) {
+  const r = String(env.MODELO_IA_RESERVA == null ? "openai/gpt-oss-20b" : env.MODELO_IA_RESERVA).trim();
+  if (!r || r.toLowerCase() === "ninguno") { return ""; }
+  return r;
+}
+
 async function interpretar(mensaje, ctx, env) {
   let contenido;
   try {
     contenido = await llamarGroq(mensaje, ctx, env, true);
   } catch (e) {
+    const reserva = modeloReserva(env);
     if (e.estado === 400) {
       /* El modelo no consiguió un JSON válido: se reintenta en texto libre y se
          extrae el objeto con extraerJson(). */
       contenido = await llamarGroq(mensaje, ctx, env, false);
-    } else if (e.estado === 429 && env.MODELO_IA_RESERVA &&
-               env.MODELO_IA_RESERVA !== (env.MODELO_IA || "openai/gpt-oss-120b")) {
-      /* Cupo agotado en el modelo principal: los límites de Groq son por modelo,
-         así que el de reserva suele tener cupo libre. */
-      contenido = await llamarGroq(mensaje, ctx, env, true, env.MODELO_IA_RESERVA);
+    } else if (e.estado === 429 && reserva && reserva !== (env.MODELO_IA || "openai/gpt-oss-120b")) {
+      contenido = await llamarGroq(mensaje, ctx, env, true, reserva);
     } else {
       throw e;
     }
