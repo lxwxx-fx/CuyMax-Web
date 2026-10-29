@@ -69,7 +69,9 @@ function apiDemo(metodo, ruta, datos) {
   if (metodo === "GET" && base === "alertas") {
     return MOCK.avisos.filter(function (x) { return !x.enviada; });
   }
-  if (metodo === "POST" && base === "alertas/generar") { return { creadas: 0 }; }
+  if (metodo === "POST" && base === "alertas/generar") {
+    return { creadas: 0, total: MOCK.avisos.filter(function (x) { return !x.enviada; }).length };
+  }
   if (metodo === "POST" && base === "pesajes") {
     var l = lote(datos.lote);
     var p = { fecha: demoHaceDias(0), peso_promedio_g: datos.peso_g, animales_pesados: datos.animales_pesados || 10 };
@@ -162,6 +164,75 @@ function apiDemo(metodo, ruta, datos) {
     MOCK.retiros.push({ lote: lr.codigo, poza: null, producto: datos.producto,
       tipo: "tratamiento", dias_restantes: datos.dias, fecha_fin_retiro: demoEnDias(datos.dias) });
     return { ok: true, resumen: "retiro sanitario de " + datos.dias + " día(s) para la poza " + lr.codigo, detalle: "" };
+  }
+  if (metodo === "GET" && base === "alertas/atendidos") { return MOCK.avisosAtendidos || []; }
+  if (metodo === "POST" && partes[0] === "alertas" && partes[2] === "atender") {
+    var idAt = String(decodeURIComponent(partes[1]));
+    MOCK.avisosAtendidos = MOCK.avisosAtendidos || [];
+    for (var ia = 0; ia < MOCK.avisos.length; ia++) {
+      if (String(MOCK.avisos[ia].id) !== idAt) { continue; }
+      var av = MOCK.avisos.splice(ia, 1)[0];
+      av.fecha = demoHaceDias(0);
+      av.atendido_en = demoHaceDias(0);
+      av.tipo = av.tipo || "otra";
+      av.mensaje = av.mensaje || "";
+      MOCK.avisosAtendidos.unshift(av);
+      break;
+    }
+    return { ok: true };
+  }
+  if (metodo === "DELETE" && partes[0] === "alertas" && partes[2] === "atendido") {
+    var idRest = String(decodeURIComponent(partes[1]));
+    MOCK.avisosAtendidos = MOCK.avisosAtendidos || [];
+    for (var ir = 0; ir < MOCK.avisosAtendidos.length; ir++) {
+      if (String(MOCK.avisosAtendidos[ir].id) !== idRest) { continue; }
+      MOCK.avisos.push(MOCK.avisosAtendidos.splice(ir, 1)[0]);
+      break;
+    }
+    return { ok: true, resumen: "aviso devuelto a pendientes", detalle: "" };
+  }
+  if (metodo === "PUT" && partes[0] === "lotes" && partes.length === 2) {
+    var le = lote(partes[1]);
+    if (datos.nombre !== undefined) { le.nombre = String(datos.nombre || ""); }
+    if (datos.etapa !== undefined) { le.etapa = datos.etapa; }
+    if (datos.estado !== undefined) { le.estado = datos.estado; }
+    if (datos.poza_id !== undefined) { le.poza_codigo = datos.poza_id || ""; }
+    return { ok: true, resumen: "poza " + le.codigo + " actualizada", detalle: "" };
+  }
+  if (metodo === "DELETE" && partes[0] === "lotes" && partes.length === 2) {
+    var lb = lote(partes[1]);
+    if (lb.vivos > 0) { throw new Error("La poza " + lb.codigo + " todavía tiene " + lb.vivos + " cuy(es) vivos."); }
+    MOCK.lotes.splice(MOCK.lotes.indexOf(lb), 1);
+    return { ok: true, resumen: "poza " + lb.codigo + " borrada", detalle: "" };
+  }
+  if (metodo === "POST" && base === "pozas") {
+    var pc = String(datos.codigo || "").trim().toUpperCase();
+    if (!pc) { throw new Error("Dime el código de la ubicación (por ejemplo U-01)."); }
+    if (MOCK.pozas.some(function (x) { return x.codigo === pc; })) { throw new Error("La ubicación " + pc + " ya existe en esta granja."); }
+    MOCK.pozas.push({
+      id: pc, codigo: pc, tipo: String(datos.tipo || ""),
+      capacidad: datos.capacidad === "" || datos.capacidad == null ? null : Number(datos.capacidad)
+    });
+    return { ok: true, resumen: "ubicación " + pc + " agregada", detalle: "" };
+  }
+  if (metodo === "DELETE" && partes[0] === "pozas" && partes[1]) {
+    var pid = decodeURIComponent(partes[1]);
+    for (var ip = 0; ip < MOCK.pozas.length; ip++) {
+      if (String(MOCK.pozas[ip].id) !== pid && MOCK.pozas[ip].codigo !== pid) { continue; }
+      var pz = MOCK.pozas.splice(ip, 1)[0];
+      MOCK.lotes.forEach(function (x) { if (x.poza_codigo === pz.codigo) { x.poza_codigo = ""; } });
+      return { ok: true, resumen: "ubicación " + pz.codigo + " borrada", detalle: "" };
+    }
+    throw new Error("La ubicación no existe en esta granja.");
+  }
+  if (metodo === "DELETE" && partes[0] === "partos-proximos" && partes[1]) {
+    var idpp = decodeURIComponent(partes[1]);
+    for (var ipp = 0; ipp < MOCK.partos.length; ipp++) {
+      if (String(MOCK.partos[ipp].id) !== idpp) { continue; }
+      MOCK.partos.splice(ipp, 1);
+      return { ok: true, resumen: "parto programado eliminado", detalle: "" };
+    }
+    throw new Error("Ese parto programado no existe.");
   }
   throw new Error("Sin conexión. Revisa tu internet e inténtalo de nuevo.");
 }
@@ -503,11 +574,12 @@ async function cargarPanel() {
     var partos = await api("GET", "partos-proximos?granja_id=" + g);
     animarNumero("kpi-partos", document.getElementById("kpi-partos").textContent || 0, partos.length);
     document.getElementById("partos").innerHTML = partos.length
-      ? tabla(["Hembra", "Ubicación", "Plazo", "Fecha"], partos.map(function (p) {
+      ? tabla(["Hembra", "Ubicación", "Plazo", "Fecha", ""], partos.map(function (p) {
           var cls = p.dias_restantes < 0 ? "b-red" : (p.dias_restantes <= 3 ? "b-amber" : "b-green");
           return "<tr><td class=\"cell-strong\">" + p.hembra + "</td><td class=\"muted\">" + p.poza +
             "</td><td><span class=\"badge " + cls + "\">" + cuando(p.dias_restantes) + "</span></td>" +
-            "<td class=\"muted\">" + (p.fecha || "") + "</td></tr>";
+            "<td class=\"muted\">" + (p.fecha || "") + "</td>" +
+            '<td><button type="button" class="btn sm" data-borrar-prox="' + escHtml(p.id) + '">Quitar</button></td></tr>';
         }))
       : vacio("Sin partos próximos en los siguientes 10 días.");
     var lotes = await api("GET", "lotes?granja_id=" + g);
@@ -823,6 +895,7 @@ async function llenarSelectsLotes() {
 }
 
 async function cargarLotes() {
+  pintarUbicaciones();
   var lotes = await llenarSelectsLotes();
   if (lotes === null) {
     document.getElementById("ficha").textContent = "Error al cargar pozas.";
@@ -834,11 +907,10 @@ async function cargarLotes() {
     } else if (atencionPendiente && atencionPendiente.lote) {
       document.getElementById("sel-lote").value = atencionPendiente.lote;
     }
-    verLote();
+    await verLote();
   }
   else { document.getElementById("ficha").innerHTML = vacio("No hay pozas en esta granja."); }
 }
-
 var grafica = null;
 
 async function verLote() {
@@ -854,7 +926,13 @@ async function verLote() {
     badge.textContent = l.etapa + " · " + l.estado;
     document.getElementById("ficha").innerHTML =
       '<div class="stat-line"><span>Muertos / vendidos / faenados</span><b>' + (l.muertos !== undefined ? l.muertos : (l.cantidad_inicial - l.vivos - (l.vendidos || 0) - (l.faenados || 0))) + ' / ' + (l.vendidos || 0) + ' / ' + (l.faenados || 0) + '</b></div>' +
-      '<div class="stat-line"><span>Alimento total</span><b>' + l.alimento_kg + ' kg</b></div>';
+      '<div class="stat-line"><span>Alimento total</span><b>' + l.alimento_kg + ' kg</b></div>' +
+      '<div class="stat-line"><span>Ubicación</span><b>' + escHtml(l.poza_codigo || "sin ubicación") + '</b></div>';
+    await cargarPozas();
+    document.getElementById("edit-nombre").value = l.nombre || "";
+    document.getElementById("edit-etapa").value = l.etapa || "engorde";
+    document.getElementById("edit-estado").value = l.estado || "abierto";
+    document.getElementById("edit-poza").value = l.poza_codigo || "";
     document.getElementById("prog-etiqueta").textContent = "Cuyes vivos de la poza · " + l.vivos + " de " + l.cantidad_inicial;
     var barra = document.querySelector("#prog-lote i");
     if (barra) { barra.style.width = pct + "%"; }
@@ -1165,21 +1243,173 @@ conectar("f-retiro", "retiros", function (f) {
   return { granja_id: cfg().granja, lote: f.lote.value, producto: f.producto.value, dias: ent(f.dias.value), tipo: "tratamiento" };
 });
 
+/* ---------- editar / borrar poza y ubicaciones ---------- */
+function refrescarLotes() {
+  llenarSelectsLotes();
+  cargarPozas();
+  pintarUbicaciones();
+  cargarPanel();
+}
+
+document.getElementById("f-editar-lote").addEventListener("submit", async function (ev) {
+  ev.preventDefault();
+  var f = ev.target, r = f.querySelector(".r");
+  var cod = document.getElementById("sel-lote").value;
+  if (!cod) { r.className = "r err"; r.textContent = "Elige una poza primero."; return; }
+  var btn = f.querySelector('button[type="submit"]');
+  r.className = "r"; r.textContent = "Guardando…";
+  btn.disabled = true;
+  try {
+    var resp = await api("PUT", "lotes/" + encodeURIComponent(cod) + "?granja_id=" + cfg().granja, {
+      nombre: f.nombre.value,
+      etapa: f.etapa.value,
+      estado: f.estado.value,
+      poza_id: f.poza_id.value
+    });
+    r.className = "r ok"; r.textContent = "Guardado · " + resp.resumen;
+    showToast("Poza actualizada", "ok");
+    /* Mantener seleccionada la poza editada: si no, cargarLotes puede volver
+       a la última guardada y la ficha mostraría otra poza. */
+    try { localStorage.setItem("cuymax_lote_activo", cod); } catch (e2) { /* sin almacenamiento */ }
+    await cargarLotes();
+    document.getElementById("sel-lote").value = cod;
+    await verLote();
+    await cargarPozas();
+    pintarUbicaciones();
+    cargarPanel();
+  } catch (e) {
+    r.className = "r err"; r.textContent = e.message;
+  }
+  btn.disabled = false;
+});
+
+document.getElementById("btn-borrar-lote").addEventListener("click", async function () {
+  var cod = document.getElementById("sel-lote").value;
+  if (!cod) { showToast("Elige una poza primero", "err"); return; }
+  if (!confirm("¿Borrar la poza " + cod + "? Se eliminarán también sus movimientos. No se puede deshacer.")) { return; }
+  this.disabled = true;
+  try {
+    var r = await api("DELETE", "lotes/" + encodeURIComponent(cod) + "?granja_id=" + cfg().granja);
+    showToast(r.resumen + (r.detalle ? " · " + r.detalle : ""), "ok");
+    try { localStorage.removeItem("cuymax_lote_activo"); } catch (e) { /* sin almacenamiento */ }
+    await cargarLotes();
+    refrescarLotes();
+  } catch (e) {
+    showToast("No se pudo borrar: " + e.message, "err");
+  }
+  this.disabled = false;
+});
+
+document.getElementById("f-poza").addEventListener("submit", async function (ev) {
+  ev.preventDefault();
+  var f = ev.target, r = f.querySelector(".r");
+  var btn = f.querySelector('button[type="submit"]');
+  f.querySelectorAll(".invalido").forEach(function (x) { x.classList.remove("invalido"); });
+  var mal = f.querySelector("input:invalid");
+  if (mal) {
+    mal.classList.add("invalido");
+    mal.focus();
+    r.className = "r err";
+    r.textContent = mal.getAttribute("data-msg") || "Revisa el campo marcado.";
+    return;
+  }
+  r.className = "r"; r.textContent = "Guardando…";
+  btn.disabled = true;
+  try {
+    var resp = await api("POST", "pozas?granja_id=" + cfg().granja, {
+      codigo: f.codigo.value, tipo: f.tipo.value, capacidad: f.capacidad.value
+    });
+    f.reset();
+    r.className = "r ok"; r.textContent = "Guardado · " + resp.resumen;
+    showToast("Ubicación agregada", "ok");
+    await cargarPozas();
+    await pintarUbicaciones();
+  } catch (e) {
+    r.className = "r err"; r.textContent = e.message;
+  }
+  btn.disabled = false;
+});
+
+document.getElementById("lista-pozas").addEventListener("click", async function (ev) {
+  var b = ev.target.closest ? ev.target.closest("[data-borrar-poza]") : null;
+  if (!b) { return; }
+  var id = b.dataset.borrarPoza;
+  if (!confirm("¿Borrar la ubicación " + id + "? Las pozas que la usen quedarán sin ubicación.")) { return; }
+  b.disabled = true;
+  try {
+    var r = await api("DELETE", "pozas/" + encodeURIComponent(id) + "?granja_id=" + cfg().granja);
+    showToast(r.resumen + (r.detalle ? " · " + r.detalle : ""), "ok");
+    await cargarPozas();
+    await pintarUbicaciones();
+    if (document.getElementById("sel-lote").value) { verLote(); }
+  } catch (e) {
+    showToast("No se pudo borrar: " + e.message, "err");
+    b.disabled = false;
+  }
+});
+
+/* Quitar un parto programado desde el panel. */
+document.getElementById("partos").addEventListener("click", async function (ev) {
+  var b = ev.target.closest ? ev.target.closest("[data-borrar-prox]") : null;
+  if (!b) { return; }
+  if (!confirm("¿Quitar este parto programado?")) { return; }
+  b.disabled = true;
+  try {
+    var r = await api("DELETE", "partos-proximos/" + encodeURIComponent(b.dataset.borrarProx) + "?granja_id=" + cfg().granja);
+    showToast(r.resumen, "ok");
+    await cargarPanel();
+  } catch (e) {
+    showToast("No se pudo quitar: " + e.message, "err");
+    b.disabled = false;
+  }
+});
+
 /* ---------- ingreso de cuyes (compras) ---------- */
 var modoIngreso = "sumar";
 
 async function cargarPozas() {
-  var s = document.getElementById("ing-poza");
-  if (!s) { return; }
   try {
     var pozas = await api("GET", "pozas?granja_id=" + cfg().granja);
-    s.innerHTML = pozas.length
+    var opIng = pozas.length
       ? pozas.map(function (p) {
-          return '<option value="' + p.id + '">' + p.codigo + (p.tipo ? " · " + p.tipo : "") + "</option>";
+          return '<option value="' + escHtml(p.id) + '">' + escHtml(p.codigo) + (p.tipo ? " · " + escHtml(p.tipo) : "") + "</option>";
         }).join("")
       : '<option value="">Sin ubicación (se usará el código)</option>';
+    var opEdit = '<option value="">Sin ubicación</option>' + pozas.map(function (p) {
+      return '<option value="' + escHtml(p.codigo) + '">' + escHtml(p.codigo) + (p.tipo ? " · " + escHtml(p.tipo) : "") + "</option>";
+    }).join("");
+    var sIng = document.getElementById("ing-poza");
+    if (sIng) { sIng.innerHTML = opIng; }
+    var sEdit = document.getElementById("edit-poza");
+    if (sEdit) {
+      var elegido = sEdit.value;
+      sEdit.innerHTML = opEdit;
+      if (elegido) { sEdit.value = elegido; }
+    }
+    return pozas;
   } catch (e) {
-    s.innerHTML = '<option value="">Error al cargar ubicaciones</option>';
+    var sIng2 = document.getElementById("ing-poza");
+    if (sIng2) { sIng2.innerHTML = '<option value="">Error al cargar ubicaciones</option>'; }
+    return null;
+  }
+}
+
+/* Lista de ubicaciones con su botón para borrar. */
+async function pintarUbicaciones() {
+  var caja = document.getElementById("lista-pozas");
+  if (!caja) { return; }
+  try {
+    var pozas = await api("GET", "pozas?granja_id=" + cfg().granja);
+    caja.innerHTML = pozas.length
+      ? pozas.map(function (p) {
+          var detalle = (p.tipo ? escHtml(p.tipo) : "sin tipo") +
+            (p.capacidad == null ? "" : " · " + p.capacidad + " cuyes");
+          return '<div class="registro"><div class="reg-info"><b>' + escHtml(p.codigo) + "</b><span>" + detalle + "</span></div>" +
+            '<button type="button" class="btn sm danger" data-borrar-poza="' + escHtml(p.id) + '">Borrar</button></div>';
+        }).join("")
+      : '<div class="empty"><b>Sin ubicaciones</b><p>Agrega galpones, jaulas o corrales para organizar tus pozas.</p></div>';
+  } catch (e) {
+    caja.innerHTML = tarjeta("Error: " + e.message);
   }
 }
 
@@ -1218,8 +1448,8 @@ document.getElementById("btn-generar").addEventListener("click", async function 
   btn.classList.add("girando");
   try {
     var r = await api("POST", "alertas/generar");
-    var n = r.creadas || 0;
-    showToast(n === 1 ? "1 aviso generado" : (n > 1 ? n + " avisos generados" : "No hay avisos nuevos hoy"), n > 0 ? "ok" : undefined);
+    var n = Number(r.total != null ? r.total : r.creadas) || 0;
+    showToast(n === 0 ? "No hay avisos pendientes hoy" : (n === 1 ? "1 aviso pendiente hoy" : n + " avisos pendientes hoy"), n > 0 ? "ok" : undefined);
     await cargarAvisos();
   } catch (e) {
     document.getElementById("avisos").innerHTML = tarjeta("Error: " + e.message);
@@ -1274,7 +1504,11 @@ function fechaCortaSinAnio(iso) {
   return ("0" + d.getDate()).slice(-2) + " " + MESES_CORTO[d.getMonth()];
 }
 
-function hoyISO() { return new Date().toISOString().slice(0, 10); }
+function fechaISO(d) {
+  return typeof fsFechaLocal === "function" ? fsFechaLocal(d || new Date()) : (d || new Date()).toISOString().slice(0, 10);
+}
+
+function hoyISO() { return fechaISO(new Date()); }
 
 function difDias(objetivo) {
   if (!objetivo) { return null; }
@@ -1325,7 +1559,7 @@ function esVencido(x) {
 }
 
 async function generarAutomatico() {
-  var hoy = new Date().toISOString().slice(0, 10);
+  var hoy = hoyISO();
   var ultimo = null;
   try { ultimo = localStorage.getItem("cuymax_avisos_fecha"); } catch (e) { ultimo = null; }
   if (ultimo === hoy) { await cargarAvisos(); return; }
@@ -1388,7 +1622,8 @@ function atenderDesdeBandeja(id) {
     irA("lote");
     return;
   }
-  api("POST", "alertas/" + x.id + "/atender?granja_id=" + cfg().granja).then(function () {
+  api("POST", "alertas/" + x.id + "/atender?granja_id=" + cfg().granja,
+    { tipo: x.tipo, mensaje: textoAviso(x) }).then(function () {
     showToast("Aviso atendido", "ok");
     return cargarAvisos();
   }, function () { showToast("No se pudo marcar. Intenta de nuevo", "err"); });
@@ -1409,8 +1644,13 @@ async function atenderSiCorresponde(idForm, datos) {
   var f = document.getElementById("f-parto");
   var card = (f && f.closest) ? f.closest(".card") : null;
   if (card) { card.classList.remove("resaltada"); }
+  var aviso = null;
+  for (var i = 0; i < cacheAvisos.length; i++) {
+    if (String(cacheAvisos[i].id) === String(ap.id)) { aviso = cacheAvisos[i]; break; }
+  }
   try {
-    await api("POST", "alertas/" + ap.id + "/atender?granja_id=" + cfg().granja);
+    await api("POST", "alertas/" + ap.id + "/atender?granja_id=" + cfg().granja,
+      aviso ? { tipo: aviso.tipo, mensaje: textoAviso(aviso) } : null);
     showToast("Aviso atendido", "ok");
   } catch (e) { showToast("Se guardó, pero no se pudo marcar el aviso", "err"); }
 }
@@ -1451,7 +1691,8 @@ var ORDEN_AVISO = { parto_proximo: 0, destete: 1, pesaje_pendiente: 2, retiro: 3
 function pintarAvisos() {
   var corte = new Date();
   corte.setDate(corte.getDate() - 7);
-  var lista = cacheAvisos.filter(function (x) { return (x.fecha_aviso || "") >= corte.toISOString().slice(0, 10); });
+  var corteISO = fechaISO(corte);
+  var lista = cacheAvisos.filter(function (x) { return (x.fecha_aviso || "") >= corteISO; });
   lista.sort(function (a, b) {
     var pa = esPendiente(a) ? 0 : 1, pb = esPendiente(b) ? 0 : 1;
     if (pa !== pb) { return pa - pb; }
@@ -1488,12 +1729,57 @@ function pintarAvisos() {
   document.getElementById("avisos").innerHTML = html;
 }
 
+function tituloAvisoPorId(x) {
+  if (x.tipo && NOMBRES_AVISO[x.tipo]) { return NOMBRES_AVISO[x.tipo]; }
+  var id = String(x.id || "");
+  if (id.indexOf("pesaje_") === 0) { return "Pesaje pendiente"; }
+  if (id.indexOf("prox_") === 0) { return "Parto próximo"; }
+  if (id.indexOf("destete_") === 0) { return "Destete"; }
+  if (id.indexOf("retiro_") === 0) { return "Fin de retiro"; }
+  return "Aviso";
+}
+
+function pintarAtendidos(lista) {
+  var caja = document.getElementById("avisos-atendidos");
+  if (!caja) { return; }
+  if (!lista.length) {
+    caja.innerHTML = '<p class="muted">Todavía no has atendido ningún aviso.</p>';
+    return;
+  }
+  caja.innerHTML = lista.map(function (x) {
+    return '<div class="registro"><div class="reg-info"><b>' + escHtml(tituloAvisoPorId(x)) + "</b><span>" +
+      escHtml(x.mensaje || "Aviso atendido") + " · " + fechaCortaSinAnio(x.fecha) + "</span></div>" +
+      '<button type="button" class="btn sm" data-restaurar="' + escHtml(x.id) + '">Restaurar</button></div>';
+  }).join("");
+}
+
+document.getElementById("avisos-atendidos").addEventListener("click", async function (ev) {
+  var b = ev.target.closest ? ev.target.closest("[data-restaurar]") : null;
+  if (!b) { return; }
+  b.disabled = true;
+  try {
+    var r = await api("DELETE", "alertas/" + encodeURIComponent(b.dataset.restaurar) + "/atendido?granja_id=" + cfg().granja);
+    showToast(r.resumen || "Aviso restaurado", "ok");
+    await cargarAvisos();
+  } catch (e) {
+    showToast("No se pudo restaurar: " + e.message, "err");
+    b.disabled = false;
+  }
+});
+
 async function cargarAvisos() {
   document.getElementById("avisos").innerHTML = esqueleto(3);
   try {
     cacheAvisos = await api("GET", "alertas?granja_id=" + cfg().granja + "&pendientes=false");
     pintarAvisos();
   } catch (e) { document.getElementById("avisos").innerHTML = tarjeta("Error: " + e.message); }
+  try {
+    var atendidos = await api("GET", "alertas/atendidos?granja_id=" + cfg().granja);
+    pintarAtendidos(atendidos || []);
+  } catch (e2) {
+    var caja = document.getElementById("avisos-atendidos");
+    if (caja) { caja.innerHTML = '<p class="muted">No se pudieron cargar los avisos atendidos.</p>'; }
+  }
 }
 
 /* ---------- asistente (chat) ---------- */
@@ -1663,5 +1949,7 @@ document.getElementById("registros").addEventListener("click", async function (e
   await cargarAjustesGranja();
   await cargarPanel();
   llenarSelectsLotes();
+  cargarPozas();
+  pintarUbicaciones();
   generarAutomatico();
 })();

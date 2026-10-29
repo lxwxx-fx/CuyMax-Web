@@ -11,8 +11,8 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@600;700;800&display=swap">
-<link rel="stylesheet" href="cuymax-theme.css">
-<link rel="stylesheet" href="styles.css">
+<link rel="stylesheet" href="cuymax-theme.css?v=37">
+<link rel="stylesheet" href="styles.css?v=37">
 </head>
 <body>
 <div class="app">
@@ -168,6 +168,38 @@
           <button id="btn-exportar-lote" type="button" class="btn sm" style="margin-left:auto;">Exportar esta poza (CSV)</button>
           <div class="fila-prog"><span id="prog-etiqueta">Cuyes vivos de la poza</span><div class="prog" id="prog-lote"><i></i></div></div>
         </div>
+        <div class="grid grid-2 mt">
+          <div class="card">
+            <div class="card-head"><div><h3>Editar poza</h3><div class="sub">Nombre, etapa, estado y ubicación</div></div></div>
+            <form id="f-editar-lote" autocomplete="off">
+              <div class="field"><label for="edit-nombre">Nombre (opcional)</label>
+                <input id="edit-nombre" name="nombre" type="text" maxlength="60" placeholder="Ej. Galpón A · poza 3"></div>
+              <div class="field"><label for="edit-etapa">Etapa</label>
+                <select id="edit-etapa" name="etapa"><option value="engorde">engorde</option><option value="recria">recria</option></select></div>
+              <div class="field"><label for="edit-estado">Estado</label>
+                <select id="edit-estado" name="estado"><option value="abierto">abierto</option><option value="cerrado">cerrado</option></select></div>
+              <div class="field"><label for="edit-poza">Ubicación</label>
+                <select id="edit-poza" name="poza_id"><option value="">Sin ubicación</option></select></div>
+              <button type="submit" class="btn primary w-100">Guardar cambios</button>
+              <div class="r" aria-live="polite"></div>
+            </form>
+            <button type="button" class="btn danger w-100" id="btn-borrar-lote" style="margin-top:.6rem;">Borrar esta poza</button>
+          </div>
+          <div class="card">
+            <div class="card-head"><div><h3>Ubicaciones</h3><div class="sub">Galpones, jaulas o corrales</div></div></div>
+            <form id="f-poza" autocomplete="off">
+              <div class="field"><label for="poza-codigo">Código <span class="req" aria-hidden="true">*</span></label>
+                <input id="poza-codigo" name="codigo" type="text" maxlength="20" placeholder="Ej. U-01" required data-msg="Ingresa un código"></div>
+              <div class="field"><label for="poza-tipo">Tipo (opcional)</label>
+                <input id="poza-tipo" name="tipo" type="text" maxlength="30" placeholder="galpón, jaula, corral"></div>
+              <div class="field"><label for="poza-cap">Capacidad (opcional)</label>
+                <input id="poza-cap" name="capacidad" type="number" min="0" inputmode="numeric" placeholder="Ej. 60 cuyes"></div>
+              <button type="submit" class="btn primary w-100">Agregar ubicación</button>
+              <div class="r" aria-live="polite"></div>
+            </form>
+            <div id="lista-pozas" class="mt"></div>
+          </div>
+        </div>
         <div class="kpis grid mt" id="kpis-lote">
           <div class="kpi"><div class="kpi-top"><span class="chip-icon g"><svg viewBox="0 0 24 24" aria-hidden="true" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><circle cx="8" cy="8" r="3"/><circle cx="16" cy="8" r="3"/><path d="M3 20c0-3 2.5-5 5-5s5 2 5 5M11 20c0-3 2.5-5 5-5s5 2 5 5"/></svg></span><span class="kpi-label">Vivos</span></div><div class="kpi-value" id="kv-vivos">–</div><div class="kpi-bottom"><span class="delta flat" id="delta-vivos-lote">–</span></div></div>
           <div class="kpi"><div class="kpi-top"><span class="chip-icon r"><svg viewBox="0 0 24 24" aria-hidden="true" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3l8 3v6c0 5-3.5 8-8 9-4.5-1-8-4-8-9V6l8-3z"/></svg></span><span class="kpi-label">Mortalidad</span></div><div class="kpi-value" id="kv-mort">–</div><div class="kpi-bottom"><span class="delta flat" id="delta-mort">–</span></div></div>
@@ -224,6 +256,10 @@
           </div>
         </div>
         <div id="avisos" class="lista" aria-live="polite"><div class="skeleton"></div><div class="skeleton"></div></div>
+        <div class="card mt">
+          <div class="card-head"><div><h3>Avisos atendidos</h3><div class="sub">Puedes devolverlos a la lista de pendientes</div></div></div>
+          <div id="avisos-atendidos" aria-live="polite"></div>
+        </div>
       </section>
 
       <section id="tab-registros" class="view" aria-label="Últimos registros">
@@ -492,10 +528,10 @@
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-functions-compat.js"></script>
 <script src="../firebase-config.js"></script>
-<script src="mock-data.js"></script>
-<script src="firestore-data.js"></script>
-<script src="auth-guard.js"></script>
-<script src="app.js"></script>
+<script src="mock-data.js?v=37"></script>
+<script src="firestore-data.js?v=37"></script>
+<script src="auth-guard.js?v=37"></script>
+<script src="app.js?v=37"></script>
 <script>
 if ("serviceWorker" in navigator) {
   window.addEventListener("load", function () {

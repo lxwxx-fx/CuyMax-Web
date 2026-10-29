@@ -56,10 +56,12 @@ var MOCK = {
   },
 
   partos: [
-    { hembra: "H003", poza: "U-01", dias_restantes: 1, fecha: demoEnDias(1) },
-    { hembra: "H001", poza: "U-01", dias_restantes: 6, fecha: demoEnDias(6) },
-    { hembra: "H005", poza: "U-02", dias_restantes: 9, fecha: demoEnDias(9) }
+    { id: "pp-1", hembra: "H003", poza: "U-01", dias_restantes: 1, fecha: demoEnDias(1) },
+    { id: "pp-2", hembra: "H001", poza: "U-01", dias_restantes: 6, fecha: demoEnDias(6) },
+    { id: "pp-3", hembra: "H005", poza: "U-02", dias_restantes: 9, fecha: demoEnDias(9) }
   ],
+
+  avisosAtendidos: [],
 
   economico: [
     { codigo: "P-001", estado: "abierto", cantidad_vendida: 5, ingresos: 120.00,

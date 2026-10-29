@@ -31,12 +31,24 @@ function fsGranja() {
   return u.uid;
 }
 
-function fsHoy() { return new Date().toISOString().slice(0, 10); }
+/* Fecha de hoy en la zona horaria de Perú (no en UTC): así un registro hecho
+   a las 20:00 sigue siendo del mismo día. */
+function fsFechaLocal(d) {
+  try {
+    return new Intl.DateTimeFormat("en-CA", {
+      timeZone: "America/Lima", year: "numeric", month: "2-digit", day: "2-digit"
+    }).format(d || new Date());
+  } catch (e) {
+    return (d || new Date()).toISOString().slice(0, 10);
+  }
+}
+
+function fsHoy() { return fsFechaLocal(new Date()); }
 
 function fsSumaDias(dias) {
   var d = new Date();
   d.setDate(d.getDate() + dias);
-  return d.toISOString().slice(0, 10);
+  return fsFechaLocal(d);
 }
 
 function fsNum(x) {
@@ -114,7 +126,8 @@ function fsLoteFila(x) {
     mortalidad_pct: inicial > 0 ? Math.round((muertos / inicial) * 1000) / 10 : 0,
     edad_dias: edad == null ? 0 : Math.max(0, -edad),
     fecha_inicio: x.fecha_inicio ? String(x.fecha_inicio).slice(0, 10) : null,
-    peso_objetivo_g: x.peso_objetivo_g == null ? null : fsNum(x.peso_objetivo_g)
+    peso_objetivo_g: x.peso_objetivo_g == null ? null : fsNum(x.peso_objetivo_g),
+    poza_codigo: x.poza_codigo || ""
   };
 }
 
@@ -411,6 +424,21 @@ async function fsRegistrarIngreso(datos) {
   return { ok: true, resumen: cant + " cuyes ingresados a la poza " + cod, detalle: "Ahora son " + inicial + " en total." };
 }
 
+/* Acepta el código o el id de una ubicación y devuelve su código.
+   Vacío = sin ubicación. Si no existe, falla en vez de ignorarla. */
+async function fsResolverPoza(pozaId) {
+  if (pozaId == null || pozaId === "") { return ""; }
+  var pid = String(pozaId);
+  if (!pid || pid === "NaN" || pid === "undefined") { return ""; }
+  var pozas = await fsTodos("pozas");
+  for (var i = 0; i < pozas.length; i++) {
+    if (pozas[i].__id === pid || fsUp(pozas[i].codigo) === fsUp(pid)) {
+      return pozas[i].codigo || pid;
+    }
+  }
+  throw new Error("No existe la ubicación " + pid + " en la granja.");
+}
+
 async function fsCrearLote(datos) {
   var cod = fsUp(datos.codigo);
   if (!cod) { throw new Error("Dime el código de la poza nueva."); }
@@ -424,18 +452,7 @@ async function fsCrearLote(datos) {
   if (etapa !== "recria" && etapa !== "engorde") {
     throw new Error("La etapa debe ser recría o engorde.");
   }
-  var pozaCodigo = "";
-  var pozaId = datos.poza_id == null || datos.poza_id === "" ? "" : String(datos.poza_id);
-  if (pozaId && pozaId !== "NaN" && pozaId !== "undefined") {
-    var pozas = await fsTodos("pozas");
-    for (var i = 0; i < pozas.length; i++) {
-      if (pozas[i].__id === pozaId || fsUp(pozas[i].codigo) === fsUp(pozaId)) {
-        pozaCodigo = pozas[i].codigo || pozaId;
-        break;
-      }
-    }
-    if (!pozaCodigo) { throw new Error("No existe la ubicación " + pozaId + " en la granja."); }
-  }
+  var pozaCodigo = await fsResolverPoza(datos.poza_id);
   await fsLoteDoc(cod).set({
     granja_id: fsGranja(), codigo: cod, nombre: "", etapa: etapa,
     estado: "abierto", cantidad_inicial: inicial, vivos: inicial, muertos: 0,
@@ -510,6 +527,180 @@ async function fsRegistrarRetiro(datos) {
     ok: true, resumen: "retiro sanitario de " + dias + " día(s) para la poza " + cod,
     detalle: "No vender hasta el " + fin + "."
   };
+}
+
+/* ---------- gestión de pozas y ubicaciones ---------- */
+
+async function fsActualizarLote(codigo, datos) {
+  var cod = fsUp(codigo);
+  var actual = await fsLoteActual(cod);
+  if (!actual) { throw new Error("No existe la poza " + cod + " en la granja."); }
+  var upd = {};
+  if (datos.nombre !== undefined && datos.nombre !== null) {
+    upd.nombre = String(datos.nombre).trim().slice(0, 60);
+  }
+  if (datos.etapa !== undefined) {
+    var etapa = String(datos.etapa || "").toLowerCase();
+    if (etapa !== "recria" && etapa !== "engorde") { throw new Error("La etapa debe ser recría o engorde."); }
+    upd.etapa = etapa;
+  }
+  if (datos.estado !== undefined) {
+    var estado = String(datos.estado || "").toLowerCase();
+    if (estado !== "abierto" && estado !== "cerrado") { throw new Error("El estado debe ser abierto o cerrado."); }
+    upd.estado = estado;
+  }
+  if (datos.poza_id !== undefined) { upd.poza_codigo = await fsResolverPoza(datos.poza_id); }
+  if (datos.peso_objetivo_g !== undefined) {
+    if (datos.peso_objetivo_g === null || datos.peso_objetivo_g === "") { upd.peso_objetivo_g = null; }
+    else {
+      var p = fsNum(datos.peso_objetivo_g);
+      if (p < 20 || p > 3000) { throw new Error("El peso objetivo debe estar entre 20 y 3000 g."); }
+      upd.peso_objetivo_g = Math.round(p);
+    }
+  }
+  if (!Object.keys(upd).length) { throw new Error("No hay cambios para guardar."); }
+  upd.actualizado_en = new Date().toISOString();
+  await actual.ref.update(upd);
+  return { ok: true, resumen: "poza " + cod + " actualizada", detalle: "" };
+}
+
+/* Borra una poza vacía junto con sus movimientos. No se permite si tiene
+   cuyes vivos: primero hay que venderlos, faenarlos o registrarlos como muerte. */
+async function fsBorrarLote(codigo) {
+  var cod = fsUp(codigo);
+  var actual = await fsLoteActual(cod);
+  if (!actual) { throw new Error("No existe la poza " + cod + " en la granja."); }
+  var vivos = fsNum(actual.data.vivos);
+  if (vivos > 0) {
+    throw new Error("La poza " + cod + " todavía tiene " + vivos + " cuy(es) vivos. Véndelos, faénalos o regístralos como muerte antes de borrarla.");
+  }
+  var borrados = 0;
+  var avisosBorrar = ["pesaje_" + cod];
+  var cols = ["pesajes", "mortalidad", "consumo_alimento", "ventas", "faenas", "retiros"];
+  for (var c = 0; c < cols.length; c++) {
+    var filas = await fsTodos(cols[c]);
+    for (var i = 0; i < filas.length; i++) {
+      if (fsUp(filas[i].lote) !== cod) { continue; }
+      if (cols[c] === "retiros") { avisosBorrar.push("retiro_" + filas[i].__id); }
+      await fsdb().collection(cols[c]).doc(filas[i].__id).delete();
+      borrados++;
+    }
+  }
+  /* Los avisos ya atendidos de esta poza tampoco deben quedar colgando. */
+  var marcasAviso = await fsTodos("avisos_atendidos");
+  for (var m = 0; m < marcasAviso.length; m++) {
+    if (avisosBorrar.indexOf(String(marcasAviso[m].aviso_id || "")) < 0) { continue; }
+    await fsdb().collection("avisos_atendidos").doc(marcasAviso[m].__id).delete();
+  }
+  /* Si había crías destetadas a esta poza, se devuelven a su parto. */
+  var destetes = await fsTodos("destetes");
+  for (var j = 0; j < destetes.length; j++) {
+    if (fsUp(destetes[j].poza_destino) !== cod) { continue; }
+    var partos = await fsTodos("partos");
+    for (var k = 0; k < partos.length; k++) {
+      if (partos[k].__id !== String(destetes[j].parto_id || "")) { continue; }
+      var crias = partos[k].crias_actuales == null ? fsNum(partos[k].nacidos_vivos) : fsNum(partos[k].crias_actuales);
+      await fsdb().collection("partos").doc(partos[k].__id).update({
+        crias_actuales: crias + fsNum(destetes[j].cantidad), destetado: false
+      });
+      break;
+    }
+    await fsdb().collection("destetes").doc(destetes[j].__id).delete();
+    borrados++;
+  }
+  await actual.ref.delete();
+  return {
+    ok: true, resumen: "poza " + cod + " borrada",
+    detalle: borrados ? borrados + " movimiento(s) eliminados con ella." : ""
+  };
+}
+
+async function fsCrearPoza(datos) {
+  var cod = fsUp(datos.codigo);
+  if (!cod) { throw new Error("Dime el código de la ubicación (por ejemplo U-01)."); }
+  if (!/^[A-Z0-9_-]{1,20}$/.test(cod)) {
+    throw new Error("El código solo admite letras, números, guion y guion bajo (máximo 20).");
+  }
+  var existentes = await fsTodos("pozas");
+  for (var i = 0; i < existentes.length; i++) {
+    if (fsUp(existentes[i].codigo) === cod) { throw new Error("La ubicación " + cod + " ya existe en esta granja."); }
+  }
+  var tipo = String(datos.tipo || "").trim().slice(0, 30);
+  var cap = null;
+  if (datos.capacidad != null && datos.capacidad !== "") {
+    cap = fsNum(datos.capacidad);
+    if (cap < 0 || cap !== Math.round(cap)) { throw new Error("La capacidad debe ser un número entero."); }
+  }
+  await fsdb().collection("pozas").doc("g" + fsGranja() + "_" + cod).set({
+    granja_id: fsGranja(), codigo: cod, tipo: tipo, capacidad: cap,
+    creado_en: new Date().toISOString()
+  });
+  return { ok: true, resumen: "ubicación " + cod + " agregada", detalle: "" };
+}
+
+async function fsBorrarPoza(id) {
+  if (!id) { throw new Error("Ubicación no válida."); }
+  var filas = await fsTodos("pozas");
+  var doc = null;
+  for (var i = 0; i < filas.length; i++) {
+    if (filas[i].__id === id || fsUp(filas[i].codigo) === fsUp(id)) { doc = filas[i]; break; }
+  }
+  if (!doc) { throw new Error("La ubicación no existe en esta granja."); }
+  var enUso = 0;
+  var lotes = await fsTodos("lotes");
+  for (var j = 0; j < lotes.length; j++) {
+    if (fsUp(lotes[j].poza_codigo) !== fsUp(doc.codigo)) { continue; }
+    await fsdb().collection("lotes").doc(lotes[j].__id).update({ poza_codigo: "" });
+    enUso++;
+  }
+  await fsdb().collection("pozas").doc(doc.__id).delete();
+  return {
+    ok: true, resumen: "ubicación " + (doc.codigo || id) + " borrada",
+    detalle: enUso ? enUso + " poza(s) quedaron sin ubicación." : ""
+  };
+}
+
+async function fsBorrarPartoProximo(id) {
+  if (!id) { throw new Error("Parto programado no válido."); }
+  var filas = await fsTodos("partos_proximos");
+  for (var i = 0; i < filas.length; i++) {
+    if (filas[i].__id !== id) { continue; }
+    await fsdb().collection("partos_proximos").doc(id).delete();
+    return { ok: true, resumen: "parto programado de " + (filas[i].hembra || "la hembra") + " eliminado", detalle: "" };
+  }
+  throw new Error("Ese parto programado no existe o ya fue eliminado.");
+}
+
+/* ---------- avisos: marcadores de atendido ---------- */
+
+async function fsAvisosActuales() {
+  var atendidos = {};
+  (await fsTodos("avisos_atendidos")).forEach(function (x) {
+    atendidos[String(x.aviso_id || "")] = true;
+  });
+  var lotesA = (await fsTodos("lotes")).map(fsLoteFila);
+  var proxA = await fsTodos("partos_proximos");
+  var pesA = await fsTodos("pesajes");
+  var partosA = await fsTodos("partos");
+  var retirosA = await fsTodos("retiros");
+  var ultimos = {};
+  pesA.forEach(function (x) {
+    var cod = fsUp(x.lote);
+    var f = String(x.fecha || "").slice(0, 10);
+    if (!ultimos[cod] || f > ultimos[cod]) { ultimos[cod] = f; }
+  });
+  return fsAvisosDe(lotesA, proxA, ultimos, partosA, retirosA, atendidos);
+}
+
+async function fsBorrarAvisoAtendido(id) {
+  if (!id) { throw new Error("Aviso no válido."); }
+  var filas = await fsTodos("avisos_atendidos");
+  for (var i = 0; i < filas.length; i++) {
+    if (String(filas[i].aviso_id || "") !== id) { continue; }
+    await fsdb().collection("avisos_atendidos").doc(filas[i].__id).delete();
+    return { ok: true, resumen: "aviso devuelto a pendientes", detalle: "" };
+  }
+  throw new Error("Ese aviso no estaba marcado como atendido.");
 }
 
 /* ---------- API real ---------- */
@@ -841,7 +1032,7 @@ async function apiReal(metodo, ruta, datos) {
     var prox = await fsTodos("partos_proximos");
     return prox.map(function (p) {
       return {
-        hembra: p.hembra || "", poza: p.poza || "",
+        id: p.__id, hembra: p.hembra || "", poza: p.poza || "",
         dias_restantes: fsDias(p.fecha_objetivo),
         fecha: String(p.fecha_objetivo || "").slice(0, 10)
       };
@@ -874,11 +1065,25 @@ async function apiReal(metodo, ruta, datos) {
     return fsLoteFila(d1);
   }
 
+  if (metodo === "PUT" && partes[0] === "lotes" && partes.length === 2) {
+    return fsActualizarLote(decodeURIComponent(partes[1]), datos || {});
+  }
+
+  if (metodo === "DELETE" && partes[0] === "lotes" && partes.length === 2) {
+    return fsBorrarLote(decodeURIComponent(partes[1]));
+  }
+
   if (metodo === "GET" && base === "pozas") {
     var pz = await fsTodos("pozas");
     return pz.map(function (p) {
       return { id: p.codigo || p.__id, codigo: p.codigo || p.__id, tipo: p.tipo || "", capacidad: p.capacidad == null ? null : fsNum(p.capacidad) };
     }).sort(function (a, b) { return a.codigo < b.codigo ? -1 : 1; });
+  }
+
+  if (metodo === "POST" && base === "pozas") { return fsCrearPoza(datos || {}); }
+
+  if (metodo === "DELETE" && partes[0] === "pozas" && partes[1]) {
+    return fsBorrarPoza(decodeURIComponent(partes[1]));
   }
 
   if (metodo === "GET" && base === "retiros") {
@@ -939,10 +1144,10 @@ async function apiReal(metodo, ruta, datos) {
     for (var i = semanas - 1; i >= 0; i--) {
       var corte = new Date();
       corte.setDate(corte.getDate() - i * 7);
-      var corteISO = corte.toISOString().slice(0, 10);
+      var corteISO = fsFechaLocal(corte);
       var inicioSemana = new Date(corte);
       inicioSemana.setDate(inicioSemana.getDate() - 7);
-      var inicioISO = inicioSemana.toISOString().slice(0, 10);
+      var inicioISO = fsFechaLocal(inicioSemana);
       var poblacion = 0;
       lotesE.forEach(function (l) {
         if (l.fecha_inicio && l.fecha_inicio > corteISO) { return; }
@@ -1036,41 +1241,51 @@ async function apiReal(metodo, ruta, datos) {
   }
 
   if (metodo === "GET" && base === "alertas") {
-    var atendidos = {};
-    (await fsTodos("avisos_atendidos")).forEach(function (x) {
-      atendidos[String(x.__id || "").replace(/^g\d+_/, "")] = true;
-    });
-    var lotesA = (await fsTodos("lotes")).map(fsLoteFila);
-    var proxA = await fsTodos("partos_proximos");
-    var pesA = await fsTodos("pesajes");
-    var partosA = await fsTodos("partos");
-    var retirosA = await fsTodos("retiros");
-    var ultimos = {};
-    pesA.forEach(function (x) {
-      var cod = fsUp(x.lote);
-      var f = String(x.fecha || "").slice(0, 10);
-      if (!ultimos[cod] || f > ultimos[cod]) { ultimos[cod] = f; }
-    });
-    return fsAvisosDe(lotesA, proxA, ultimos, partosA, retirosA, atendidos);
+    return fsAvisosActuales();
+  }
+
+  if (metodo === "GET" && base === "alertas/atendidos") {
+    var atendidosLista = await fsTodos("avisos_atendidos");
+    return atendidosLista.map(function (x) {
+      var idAv = String(x.aviso_id || "");
+      return {
+        id: idAv, tipo: x.tipo || "", mensaje: x.mensaje || "",
+        fecha: String(x.atendido_en || "").slice(0, 10), atendido_en: x.atendido_en || ""
+      };
+    }).filter(function (x) { return !!x.id; })
+      .sort(function (a, b) { return a.atendido_en < b.atendido_en ? 1 : -1; });
   }
 
   /* ---------- escrituras ---------- */
 
-  if (metodo === "POST" && base === "alertas/generar") { return { creadas: 0 }; }
+  if (metodo === "POST" && base === "alertas/generar") {
+    var avisosGen = await fsAvisosActuales();
+    return { creadas: 0, total: avisosGen.length };
+  }
 
   if (metodo === "POST" && partes[0] === "alertas" && partes[2] === "atender") {
     var idAviso = decodeURIComponent(partes[1] || "");
     if (!idAviso) { throw new Error("Aviso no válido."); }
-    await fsdb().collection("avisos_atendidos").doc("g" + fsGranja() + "_" + idAviso).set({
+    var marca = {
       granja_id: fsGranja(), aviso_id: idAviso, atendido_en: new Date().toISOString()
-    });
+    };
+    if (datos && datos.tipo) { marca.tipo = String(datos.tipo); }
+    if (datos && datos.mensaje) { marca.mensaje = String(datos.mensaje).slice(0, 300); }
+    await fsdb().collection("avisos_atendidos").doc("g" + fsGranja() + "_" + idAviso).set(marca);
     return { ok: true };
+  }
+
+  if (metodo === "DELETE" && partes[0] === "alertas" && partes[2] === "atendido") {
+    return fsBorrarAvisoAtendido(decodeURIComponent(partes[1] || ""));
   }
 
   if (metodo === "POST" && base === "pesajes") { return fsRegistrarPeso(datos || {}); }
   if (metodo === "POST" && base === "muertes") { return fsRegistrarMuerte(datos || {}); }
   if (metodo === "POST" && base === "alimento") { return fsRegistrarAlimento(datos || {}); }
   if (metodo === "POST" && base === "partos-proximos") { return fsProgramarParto(datos || {}); }
+  if (metodo === "DELETE" && partes[0] === "partos-proximos" && partes[1]) {
+    return fsBorrarPartoProximo(decodeURIComponent(partes[1]));
+  }
   if (metodo === "POST" && base === "partos") { return fsRegistrarParto(datos || {}); }
   if (metodo === "POST" && base === "destetes") { return fsRegistrarDestete(datos || {}); }
   if (metodo === "POST" && base === "ingresos") { return fsRegistrarIngreso(datos || {}); }
