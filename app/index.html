@@ -11,9 +11,9 @@
 <link rel="preconnect" href="https://firestore.googleapis.com" crossorigin>
 <link rel="preconnect" href="https://identitytoolkit.googleapis.com" crossorigin>
 <!-- Tipografías propias: el panel abre sin internet y sin esperar a Google. -->
-<link rel="stylesheet" href="vendor/fonts/fuentes.css?v=48">
-<link rel="stylesheet" href="cuymax-theme.css?v=48">
-<link rel="stylesheet" href="styles.css?v=48">
+<link rel="stylesheet" href="vendor/fonts/fuentes.css?v=49">
+<link rel="stylesheet" href="cuymax-theme.css?v=49">
+<link rel="stylesheet" href="styles.css?v=49">
 <!-- iPhone: icono propio y apertura a pantalla completa al añadir a inicio. -->
 <link rel="apple-touch-icon" href="icono-180.png">
 <meta name="apple-mobile-web-app-capable" content="yes">
@@ -131,7 +131,7 @@
                 <button type="button" data-rango="30" class="on">30 días</button>
                 <button type="button" data-rango="365">Año</button>
               </div>
-              <button id="btn-actualizar" type="button" class="icon-btn" title="Actualizar" aria-label="Actualizar datos"><svg viewBox="0 0 24 24" aria-hidden="true" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M20 12a8 8 0 1 1-2.34-5.66M20 4v5h-5"/></svg></button>
+              <button id="btn-refrescar" type="button" class="icon-btn" title="Actualizar" aria-label="Actualizar datos"><svg viewBox="0 0 24 24" aria-hidden="true" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M20 12a8 8 0 1 1-2.34-5.66M20 4v5h-5"/></svg></button>
               <button id="btn-rapido" type="button" class="btn">+ Registro rápido</button>
               <button id="btn-exportar-panel" type="button" class="btn">Exportar reporte CSV</button>
             </div>
@@ -585,15 +585,15 @@
 
 <script src="vendor/chart.umd.min.js"></script>
 <!-- SDK de Firebase servido desde el propio dominio: así el panel abre sin internet. -->
-<script src="vendor/firebase/firebase-app-compat.js?v=48"></script>
-<script src="vendor/firebase/firebase-auth-compat.js?v=48"></script>
-<script src="vendor/firebase/firebase-firestore-compat.js?v=48"></script>
+<script src="vendor/firebase/firebase-app-compat.js?v=49"></script>
+<script src="vendor/firebase/firebase-auth-compat.js?v=49"></script>
+<script src="vendor/firebase/firebase-firestore-compat.js?v=49"></script>
 <script src="../firebase-config.js"></script>
-<script src="mock-data.js?v=48"></script>
-<script src="ia-asistente.js?v=48"></script>
-<script src="firestore-data.js?v=48"></script>
-<script src="auth-guard.js?v=48"></script>
-<script src="app.js?v=48"></script>
+<script src="mock-data.js?v=49"></script>
+<script src="ia-asistente.js?v=49"></script>
+<script src="firestore-data.js?v=49"></script>
+<script src="auth-guard.js?v=49"></script>
+<script src="app.js?v=49"></script>
 <script>
 if ("serviceWorker" in navigator) {
   window.addEventListener("load", function () {

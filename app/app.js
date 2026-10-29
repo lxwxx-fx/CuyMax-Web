@@ -566,7 +566,7 @@ async function exportarLote(cod) {
 
 
 /* ---------- panel ---------- */
-document.getElementById("btn-actualizar").addEventListener("click", async function () {
+document.getElementById("btn-refrescar").addEventListener("click", async function () {
   var btn = this;
   btn.classList.add("girando");
   btn.disabled = true;
