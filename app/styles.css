@@ -853,3 +853,41 @@ html[data-theme="dark"] dialog.modal {
   .nav-group { width: 100%; display: grid; grid-template-columns: repeat(3, 1fr); gap: 4px; }
   button.nav-item { width: 100%; justify-content: center; padding: 8px 6px; font-size: 12.5px; }
 }
+
+/* ---------- registro rápido flotante (solo celular) ---------- */
+.fab-registro { display: none; }
+
+@media (max-width: 860px) {
+  .fab-registro {
+    position: fixed;
+    right: 22px;
+    bottom: 88px;
+    z-index: 61;
+    width: 56px;
+    height: 56px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border: 0;
+    border-radius: 17px;
+    color: #fff;
+    cursor: pointer;
+    background: linear-gradient(145deg, #12B57E 0%, #0B7A5A 62%, #07603F 100%);
+    box-shadow: 0 14px 30px -10px rgba(11, 122, 90, .55), 0 2px 6px rgba(13, 20, 27, .14), inset 0 1px 0 rgba(255, 255, 255, .22);
+  }
+  .fab-registro:active { transform: scale(.96); }
+  /* Espacio para las dos burbujas flotantes (registro y asistente). */
+  .content { padding-bottom: 150px; }
+}
+
+.dlg-marca {
+  margin-left: auto;
+  font-size: 10.5px;
+  font-weight: 600;
+  letter-spacing: .02em;
+  color: var(--accent-ink, #0B7A5A);
+  background: var(--accent-soft, rgba(18, 181, 126, .14));
+  padding: 2px 7px;
+  border-radius: 999px;
+  white-space: nowrap;
+}

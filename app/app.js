@@ -1430,7 +1430,60 @@ async function abrirRegistrar(accion) {
   }
   /* Se espera: quien llame puede querer fijar la poza justo después. */
   await llenarSelectsLotes();
+  aplicarUltimaPoza();
+  marcarUltimaAccion();
   cargarPozas();
+}
+
+/* La poza y el tipo de movimiento de la última vez: el registro rápido abre
+   con eso puesto, que es lo que de verdad ahorra toques en el galpón. */
+var LLAVE_ULTIMA_POZA = "cuymax_ultima_poza";
+var LLAVE_ULTIMA_ACCION = "cuymax_ultima_accion";
+var SELECTS_POZA = ["sel-lote", "peso-lote", "muerte-lote", "alim-lote",
+  "ing-lote", "venta-lote", "faena-lote", "retiro-lote"];
+
+function ultimaPoza() {
+  try { return localStorage.getItem(LLAVE_ULTIMA_POZA) || ""; } catch (e) { return ""; }
+}
+
+function ultimaAccion() {
+  try { return localStorage.getItem(LLAVE_ULTIMA_ACCION) || ""; } catch (e) { return ""; }
+}
+
+function guardarUltimaPoza(codigo) {
+  try { if (codigo) { localStorage.setItem(LLAVE_ULTIMA_POZA, codigo); } } catch (e) {}
+}
+
+function guardarUltimaAccion(accion) {
+  try { if (accion) { localStorage.setItem(LLAVE_ULTIMA_ACCION, accion); } } catch (e) {}
+}
+
+function aplicarUltimaPoza() {
+  var cod = ultimaPoza();
+  if (!cod) { return; }
+  SELECTS_POZA.forEach(function (id) {
+    var s = document.getElementById(id);
+    if (!s || !s.options) { return; }
+    for (var i = 0; i < s.options.length; i++) {
+      if (s.options[i].value === cod) { s.selectedIndex = i; return; }
+    }
+  });
+}
+
+function marcarUltimaAccion() {
+  var accion = ultimaAccion();
+  var lista = document.querySelectorAll("#dlg-acciones .dlg-accion");
+  for (var i = 0; i < lista.length; i++) {
+    var b = lista[i];
+    var marca = b.querySelector(".dlg-marca");
+    if (marca) { marca.parentNode.removeChild(marca); }
+    if (accion && b.dataset.accion === accion) {
+      var s = document.createElement("span");
+      s.className = "dlg-marca";
+      s.textContent = "Última vez";
+      b.appendChild(s);
+    }
+  }
 }
 
 function cerrarRegistrar() {
@@ -1457,6 +1510,23 @@ if (dlgRegistrar) {
   });
 }
 document.getElementById("btn-registrar-mov").addEventListener("click", function () { abrirRegistrar(); });
+
+/* Al guardar cualquier movimiento se recuerda la poza y el tipo usados. */
+if (dlgRegistrar) {
+  dlgRegistrar.addEventListener("submit", function (ev) {
+    var f = ev.target;
+    var sel = f && f.querySelector ? f.querySelector("select[id$='-lote']") : null;
+    if (sel && sel.value) { guardarUltimaPoza(sel.value); }
+    var accion = f && f.id ? f.id.replace(/^f-/, "") : "";
+    if (accion) { guardarUltimaAccion(accion); }
+  }, true);
+}
+
+/* Botón flotante de registro rápido: abre el diálogo con la poza ya puesta. */
+var fabRegistro = document.getElementById("fab-registro");
+if (fabRegistro) {
+  fabRegistro.addEventListener("click", function () { abrirRegistrar(); });
+}
 
 /* ---------- formularios ---------- */
 function num(v) { return v === "" || v === null ? null : parseFloat(String(v).replace(",", ".")); }

@@ -11,9 +11,9 @@
 <link rel="preconnect" href="https://firestore.googleapis.com" crossorigin>
 <link rel="preconnect" href="https://identitytoolkit.googleapis.com" crossorigin>
 <!-- Tipografías propias: el panel abre sin internet y sin esperar a Google. -->
-<link rel="stylesheet" href="vendor/fonts/fuentes.css?v=56">
-<link rel="stylesheet" href="cuymax-theme.css?v=56">
-<link rel="stylesheet" href="styles.css?v=56">
+<link rel="stylesheet" href="vendor/fonts/fuentes.css?v=57">
+<link rel="stylesheet" href="cuymax-theme.css?v=57">
+<link rel="stylesheet" href="styles.css?v=57">
 <!-- iPhone: icono propio y apertura a pantalla completa al añadir a inicio. -->
 <link rel="apple-touch-icon" href="icono-180.png">
 <meta name="apple-mobile-web-app-capable" content="yes">
@@ -583,6 +583,10 @@
   </form>
 </section>
 
+<button type="button" id="fab-registro" class="fab-registro" aria-label="Registro rápido" title="Registro rápido">
+  <svg viewBox="0 0 24 24" aria-hidden="true" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>
+</button>
+
 <button type="button" id="ia-fab" class="ia-fab" aria-controls="ia-panel" aria-expanded="false">
   <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M21 12a8 8 0 0 1-8 8H4l2.3-2.9A8 8 0 1 1 21 12z"/><path d="M8.5 12h.01M12 12h.01M15.5 12h.01"/></svg>
   <span>Asistente</span>
@@ -609,15 +613,15 @@
 
 <script src="vendor/chart.umd.min.js"></script>
 <!-- SDK de Firebase servido desde el propio dominio: así el panel abre sin internet. -->
-<script src="vendor/firebase/firebase-app-compat.js?v=56"></script>
-<script src="vendor/firebase/firebase-auth-compat.js?v=56"></script>
-<script src="vendor/firebase/firebase-firestore-compat.js?v=56"></script>
+<script src="vendor/firebase/firebase-app-compat.js?v=57"></script>
+<script src="vendor/firebase/firebase-auth-compat.js?v=57"></script>
+<script src="vendor/firebase/firebase-firestore-compat.js?v=57"></script>
 <script src="../firebase-config.js"></script>
-<script src="mock-data.js?v=56"></script>
-<script src="ia-asistente.js?v=56"></script>
-<script src="firestore-data.js?v=56"></script>
-<script src="auth-guard.js?v=56"></script>
-<script src="app.js?v=56"></script>
+<script src="mock-data.js?v=57"></script>
+<script src="ia-asistente.js?v=57"></script>
+<script src="firestore-data.js?v=57"></script>
+<script src="auth-guard.js?v=57"></script>
+<script src="app.js?v=57"></script>
 <script>
 if ("serviceWorker" in navigator) {
   window.addEventListener("load", function () {
