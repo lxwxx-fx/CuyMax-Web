@@ -2029,3 +2029,60 @@ img {
     scroll-behavior: auto !important;
   }
 }
+
+/* ---------- Descarga de la app ---------- */
+.download-section {
+  position: relative;
+  padding: 96px 0;
+  background: linear-gradient(180deg, var(--bg) 0%, rgba(30, 58, 40, 0.06) 100%);
+}
+
+.download-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 24px;
+  max-width: 860px;
+  margin: 0 auto;
+}
+
+.download-card {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  padding: 28px;
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.06);
+}
+
+.download-os {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  color: var(--brand);
+}
+
+.download-os h3 {
+  margin: 0;
+  font-size: 1.25rem;
+}
+
+.dl-steps {
+  margin: 0;
+  padding-left: 20px;
+  display: grid;
+  gap: 10px;
+  color: var(--muted);
+  line-height: 1.5;
+}
+
+.dl-steps strong { color: var(--text); }
+
+.download-nota {
+  text-align: center;
+  margin: 28px auto 0;
+  max-width: 640px;
+  color: var(--muted);
+  font-size: 0.95rem;
+}
