@@ -464,7 +464,7 @@ def build_sistema():
     cuerpo(doc, "En Android y en las computadoras, el navegador avisa con el evento `beforeinstallprompt` cuando la aplicación cumple los requisitos de instalación. El panel lo escucha y muestra el botón «Instalar app» en la tarjeta de la izquierda; al pulsarlo se abre el diálogo del sistema. En iPhone ese evento no existe, así que el botón se muestra siempre y explica la ruta manual: Compartir → Añadir a pantalla de inicio.")
     cuerpo(doc, "En el celular esa tarjeta está oculta, porque el menú sube a la parte superior para dejar sitio al contenido. Por eso, cuando alguien llega desde el botón de descarga del sitio web (`?instalar=1`), el panel muestra un aviso propio debajo de la barra superior, con el mismo botón conectado al mismo diálogo del sistema. En iPhone el aviso cambia el botón por los tres pasos de Compartir. Se cierra con una X, no vuelve a aparecer en esa sesión y no se muestra si la aplicación ya está instalada.")
     cuerpo(doc, "El botón se oculta cuando la aplicación ya está abierta como instalada (`display-mode: standalone`) o después de instalarla, para no ofrecer algo que ya está hecho.")
-    figura(doc, "instalar-aviso.png", "Aviso de instalación que aparece en el celular al llegar desde el botón de descarga.", 6.6)
+    figura(doc, "instalar-aviso-crop.png", "Aviso de instalación que aparece en el celular al llegar desde el botón de descarga.", 9.2)
 
     h2(doc, "4.6 Trabajo sin conexión")
     cuerpo(doc, "Además de abrir sin internet, el panel permite registrar sin conexión. Al arrancar, la capa de datos activa la persistencia local de Firestore (`enablePersistence`, con `synchronizeTabs`), que mantiene una copia de los documentos en el teléfono y encola las escrituras.")
@@ -947,7 +947,7 @@ def build_manual():
         "Confirma **Instalar**. El ícono de CuyMax aparece en la pantalla de inicio.",
         "Ábrelo desde ese ícono: se verá a pantalla completa, sin la barra de direcciones del navegador.",
     ])
-    figura(doc, "instalar-aviso.png", "El aviso de instalación que aparece arriba del panel en el celular.", 6.6)
+    figura(doc, "instalar-aviso-crop.png", "El aviso de instalación que aparece arriba del panel en el celular.", 9.2)
     cuerpo(doc, "El aviso se puede cerrar con la X. Mientras no instales la app, volverá a aparecer cada vez que entres desde el botón de descarga del sitio; cuando ya está instalada, no se muestra.")
 
     h2(doc, "11.2 Instalar la app en iPhone")
@@ -978,7 +978,7 @@ def build_manual():
     h2(doc, "11.6 El menú en el celular")
     cuerpo(doc, "En el celular el menú se convierte en seis pestañas repartidas en dos filas de tres: Panel, Poza, Registrar, Avisos, Registros y Cuenta. Algunas etiquetas se acortan para que quepan («Últimos registros» pasa a «Registros»).")
     cuerpo(doc, "La pestaña **Cuenta** abre Ajustes con tus datos arriba: el nombre de la granja, el correo con el que entraste y el botón **Cerrar sesión**.")
-    figura(doc, "cuenta-movil.png", "La pestaña Cuenta en el celular, con los datos de la granja y el cierre de sesión.", 6.4)
+    figura(doc, "cuenta-movil-crop.png", "La pestaña Cuenta en el celular, con los datos de la granja y el cierre de sesión.", 8.4)
     cuerpo(doc, "Abajo a la derecha siguen los dos botones flotantes: el **+** del registro rápido y el del asistente.")
 
     h2(doc, "11.7 Avisos al celular (notificaciones)")
