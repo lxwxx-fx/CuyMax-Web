@@ -2426,6 +2426,26 @@ async function avisosPost(ruta, cuerpo) {
   return j;
 }
 
+/* PushSubscription no expone .keys: las claves se leen del JSON o de getKey(). */
+function claveB64u(buf) {
+  if (!buf) { return ""; }
+  var bytes = new Uint8Array(buf);
+  var bin = "";
+  for (var i = 0; i < bytes.length; i++) { bin += String.fromCharCode(bytes[i]); }
+  return btoa(bin).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
+}
+
+function datosSubPush(sub) {
+  var j = null;
+  try { j = (sub && sub.toJSON) ? sub.toJSON() : null; } catch (e) { j = null; }
+  var endpoint = (j && j.endpoint) || (sub && sub.endpoint) || "";
+  var keys = (j && j.keys) || (sub && sub.keys) || null;
+  if (!keys && sub && sub.getKey) {
+    keys = { p256dh: claveB64u(sub.getKey("p256dh")), auth: claveB64u(sub.getKey("auth")) };
+  }
+  return { endpoint: endpoint, keys: keys };
+}
+
 async function subirSubPush(sub, resumen, hora) {
   await avisosPost("/suscribir", {
     sub: { endpoint: sub.endpoint, keys: sub.keys },
@@ -2469,10 +2489,14 @@ document.getElementById("btn-push-activar").addEventListener("click", async func
       userVisibleOnly: true,
       applicationServerKey: VAPID_PUBLICA
     });
+    var datos = datosSubPush(sub);
+    if (!datos.endpoint || !datos.keys || !datos.keys.p256dh || !datos.keys.auth) {
+      throw new Error("el navegador no entregó las claves del aviso. Desactiva y vuelve a activar.");
+    }
     var hora = Number(document.getElementById("cfg-push-hora").value) || 7;
-    await subirSubPush(sub, resumenAvisosPush(), hora);
+    await subirSubPush(datos, resumenAvisosPush(), hora);
     localStorage.setItem(LLAVE_PUSH, JSON.stringify({
-      endpoint: sub.endpoint, keys: sub.keys, hora: hora,
+      endpoint: datos.endpoint, keys: datos.keys, hora: hora,
       resumen: resumenAvisosPush(), cuando: Date.now()
     }));
     showToast("Listo: recibirás avisos en este celular", "ok");
