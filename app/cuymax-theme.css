@@ -312,7 +312,8 @@ td.muted,th.muted{color:var(--text-2)}
   .nav-item svg{display:none}
   .topbar{padding:8px 14px}
   .crumbs{flex-basis:100%}
-  .search{flex:1}.search input{width:100%}.search kbd{display:none}
+  .search{flex:1;min-width:0}.search input{width:100%;min-width:0}.search kbd{display:none}
+  .topbar .icon-btn{flex:none}
   .content{padding:16px}
   .page-head h1{font-size:19px}
   .grid-2,.grid-3,.two,.three{grid-template-columns:1fr}

@@ -299,6 +299,8 @@ var calma = window.matchMedia && window.matchMedia("(prefers-reduced-motion: red
 /* ---------- pestañas y ajustes ---------- */
 var TITULOS = { panel: "Panel", lote: "Poza", registrar: "Registrar", avisos: "Avisos", registros: "Últimos registros", asistente: "Asistente" };
 function irA(t) {
+  /* Solo pestañas conocidas: si llega algo vacío o inventado, no se toca la vista. */
+  if (!t || !TITULOS[t]) { return; }
   document.querySelectorAll(".nav-item").forEach(function (x) {
     x.classList.toggle("active", x.dataset.tab === t);
   });
@@ -316,6 +318,8 @@ function irA(t) {
 document.querySelectorAll(".nav-item").forEach(function (b) {
   b.addEventListener("click", function () {
     var t = b.dataset.tab;
+    /* Los botones que no son pestañas (por ejemplo «Cuenta») tienen su propio manejador. */
+    if (!t) { return; }
     irA(t);
     // Control btn-nuevo visibility: hide on registrar tab, show on others
     // btn-nuevo was removed from HTML; keeping logic for future use
