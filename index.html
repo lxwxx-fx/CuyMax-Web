@@ -753,14 +753,16 @@
     }
     if (!haySesion()) { return; }
     document.querySelectorAll('a[href^="login.html"]').forEach(function (a) {
-      var real = (a.getAttribute("href") || "").indexOf("modo%3Dreal") >= 0;
       a.innerHTML = a.innerHTML
         .replace("Probar Demo", "Mi panel")
         .replace("Abrir Demo Interactiva", "Abrir mi panel")
         .replace("Ingresar a la Demo en Vivo", "Ir a mi panel")
         .replace("Entrar a Mi Granja", "Ir a mi granja")
         .replace("Ir a la Demo", "Ir a mi panel");
-      a.setAttribute("href", real ? "app/?modo=real" : "app/");
+      /* Con sesión abierta todos estos botones son "mi panel", así que van
+         siempre al modo real. Antes los de demo apuntaban a "app/", y en
+         web.app eso abre la demo con datos de ejemplo aunque estés dentro. */
+      a.setAttribute("href", "app/?modo=real");
     });
   })();
   </script>
