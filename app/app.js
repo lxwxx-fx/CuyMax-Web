@@ -494,6 +494,8 @@ function aplicarTema(oscuro) {
   var demo = (typeof MODO_DEMO !== "undefined" && MODO_DEMO);
   var b = document.getElementById("badge-demo");
   if (b) { b.classList.toggle("oculto", !demo); }
+  var chip = document.getElementById("chip-demo");
+  if (chip) { chip.classList.toggle("oculto", !demo); }
   var real = (typeof MODO_REAL !== "undefined" && MODO_REAL);
   var r = document.getElementById("badge-real");
   if (r) { r.classList.toggle("oculto", !real); }
@@ -2275,11 +2277,23 @@ var NOMBRE_REGISTRO = {
   destete: "Destete", venta: "Venta", faena: "Faena", retiro: "Retiro"
 };
 
+function filaRegistro(r) {
+  var quien = r.lote ? r.lote : (r.hembra || "");
+  return '<div class="registro">' +
+    '<span class="reg-tipo t-' + r.tipo + '">' + (NOMBRE_REGISTRO[r.tipo] || r.tipo) + "</span>" +
+    '<div class="reg-info"><b>' + escHtml(quien) + '</b><span>' + escHtml(r.detalle) + " · " + fechaCortaSinAnio(r.fecha) + "</span></div>" +
+    '<button type="button" class="btn sm" data-borrar="' + r.tipo + ":" + r.id + '">Borrar</button>' +
+    "</div>";
+}
+
 async function cargarRegistros() {
   var caja = document.getElementById("registros");
   if (!caja) { return; }
   if (typeof MODO_DEMO !== "undefined" && MODO_DEMO) {
-    caja.innerHTML = vacio("El historial con borrado está disponible en la versión instalada.");
+    var ejemplo = (typeof MOCK !== "undefined" && MOCK.registros) ? MOCK.registros : [];
+    caja.innerHTML = ejemplo.length
+      ? ejemplo.map(filaRegistro).join("")
+      : vacio("Todavía no hay movimientos registrados.");
     return;
   }
   caja.innerHTML = esqueleto(2);
@@ -2289,14 +2303,7 @@ async function cargarRegistros() {
       caja.innerHTML = vacio("Todavía no hay movimientos registrados.");
       return;
     }
-    caja.innerHTML = lista.map(function (r) {
-      var quien = r.lote ? r.lote : (r.hembra || "");
-      return '<div class="registro">' +
-        '<span class="reg-tipo t-' + r.tipo + '">' + (NOMBRE_REGISTRO[r.tipo] || r.tipo) + "</span>" +
-        '<div class="reg-info"><b>' + escHtml(quien) + "</b><span>" + escHtml(r.detalle) + " · " + fechaCortaSinAnio(r.fecha) + "</span></div>" +
-        '<button type="button" class="btn sm" data-borrar="' + r.tipo + ":" + r.id + '">Borrar</button>' +
-        "</div>";
-    }).join("");
+    caja.innerHTML = lista.map(filaRegistro).join("");
   } catch (e) {
     caja.innerHTML = tarjeta("Error: " + e.message);
   }
@@ -2308,6 +2315,15 @@ document.getElementById("registros").addEventListener("click", async function (e
   var partes = b.dataset.borrar.split(":");
   if (!confirm("¿Borrar este registro? No se puede deshacer.")) { return; }
   b.disabled = true;
+  /* En la demostración se borra del ejemplo, para que el botón también responda. */
+  if (typeof MODO_DEMO !== "undefined" && MODO_DEMO && typeof MOCK !== "undefined" && MOCK.registros) {
+    for (var i = 0; i < MOCK.registros.length; i++) {
+      if (String(MOCK.registros[i].id) === partes[1]) { MOCK.registros.splice(i, 1); break; }
+    }
+    showToast("Registro borrado", "ok");
+    cargarRegistros();
+    return;
+  }
   try {
     await api("DELETE", "registros/" + encodeURIComponent(partes[0]) + "/" + encodeURIComponent(partes[1]) + "?granja_id=" + cfg().granja);
     showToast("Registro borrado", "ok");

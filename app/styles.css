@@ -801,3 +801,55 @@ html[data-theme="dark"] dialog.modal {
 @media (prefers-reduced-motion: reduce) {
   #badge-offline::before { animation: none; }
 }
+
+/* ---------- ajustes de celular para la demo ---------- */
+.chip-demo { display: none; margin-left: 8px; }
+.nav-corto { display: none; }
+
+@media (max-width: 860px) {
+  /* En el celular no se ve la tarjeta lateral: el chip avisa que son datos de ejemplo. */
+  .chip-demo { display: inline-flex; }
+  .nav-largo { display: none; }
+  .nav-corto { display: inline; }
+
+  /* Registrar: las acciones primero, la foto después. */
+  .registrar-showcase {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+  }
+  .registrar-showcase-body {
+    order: 1;
+    display: flex;
+    flex-direction: column;
+  }
+  .registrar-showcase-img {
+    order: 2;
+    height: 130px;
+  }
+  .registrar-showcase-body .badge { display: none; }
+  .registrar-showcase-body > p { display: none; }
+  .registrar-showcase-body h3 { font-size: 16.5px; margin: 0 0 10px; }
+  .registrar-quick-btns {
+    order: -1;
+    margin: 0 0 14px;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 9px;
+  }
+  .registrar-quick-btns .btn { justify-content: center; }
+}
+
+@media (max-width: 860px) {
+  /* La foto de Registrar ocupa el ancho completo, no solo el centro. */
+  .registrar-showcase-img { width: 100%; }
+  /* Espacio al final para que la burbuja del asistente no tape el último botón. */
+  .content { padding-bottom: 84px; }
+}
+
+@media (max-width: 480px) {
+  /* Seis entradas no caben en una fila de 390 px: se reparten en dos. */
+  .sidebar { flex-wrap: wrap; overflow-x: visible; }
+  .nav-group { width: 100%; display: grid; grid-template-columns: repeat(3, 1fr); gap: 4px; }
+  button.nav-item { width: 100%; justify-content: center; padding: 8px 6px; font-size: 12.5px; }
+}

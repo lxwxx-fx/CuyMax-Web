@@ -61,6 +61,17 @@ var MOCK = {
     { id: "pp-3", hembra: "H005", poza: "U-02", dias_restantes: 9, fecha: demoEnDias(9) }
   ],
 
+  registros: [
+    { id: "r1", tipo: "peso", lote: "P-001", detalle: "Pesaje semanal · promedio 730 g", fecha: demoEnDias(0) },
+    { id: "r2", tipo: "alimento", lote: "P-002", detalle: "12.4 kg de forraje + 3.2 kg de balanceado", fecha: demoEnDias(-1) },
+    { id: "r3", tipo: "parto", lote: "P-003", detalle: "8 crías nacidas · 8 vivas", fecha: demoEnDias(-1) },
+    { id: "r4", tipo: "venta", lote: "P-004", detalle: "5 cuyes · S/ 120.00", fecha: demoEnDias(-2) },
+    { id: "r5", tipo: "muerte", lote: "P-001", detalle: "1 cuy · causa no determinada", fecha: demoEnDias(-3) },
+    { id: "r6", tipo: "destete", lote: "P-002", detalle: "12 crías destetadas · 16 días", fecha: demoEnDias(-4) },
+    { id: "r7", tipo: "retiro", lote: "P-001", detalle: "Inicio de retiro sanitario · 7 días", fecha: demoEnDias(-5) },
+    { id: "r8", tipo: "peso", lote: "P-003", detalle: "Pesaje semanal · promedio 320 g", fecha: demoEnDias(-6) }
+  ],
+
   avisosAtendidos: [],
 
   economico: [

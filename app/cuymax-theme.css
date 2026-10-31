@@ -341,3 +341,18 @@ td.muted,th.muted{color:var(--text-2)}
   .nav-item-cuenta { display: flex; }
   .solo-movil { display: block; }
 }
+
+@media (max-width: 860px) {
+  /* «Cuenta» abre con la identidad y el cierre de sesión, no con los campos técnicos. */
+  #ajustes { display: flex; flex-direction: column; }
+  #ajustes .card-head { order: -3; }
+  #ajustes .ajustes-cuenta {
+    order: -2;
+    margin-top: 0;
+    padding-top: 0;
+    border-top: 0;
+    padding-bottom: 14px;
+    border-bottom: 1px solid var(--border);
+    margin-bottom: 14px;
+  }
+}

@@ -11,9 +11,9 @@
 <link rel="preconnect" href="https://firestore.googleapis.com" crossorigin>
 <link rel="preconnect" href="https://identitytoolkit.googleapis.com" crossorigin>
 <!-- Tipografías propias: el panel abre sin internet y sin esperar a Google. -->
-<link rel="stylesheet" href="vendor/fonts/fuentes.css?v=55">
-<link rel="stylesheet" href="cuymax-theme.css?v=55">
-<link rel="stylesheet" href="styles.css?v=55">
+<link rel="stylesheet" href="vendor/fonts/fuentes.css?v=56">
+<link rel="stylesheet" href="cuymax-theme.css?v=56">
+<link rel="stylesheet" href="styles.css?v=56">
 <!-- iPhone: icono propio y apertura a pantalla completa al añadir a inicio. -->
 <link rel="apple-touch-icon" href="icono-180.png">
 <meta name="apple-mobile-web-app-capable" content="yes">
@@ -49,7 +49,7 @@
       </button>
       <button type="button" class="nav-item" data-tab="registros">
         <svg viewBox="0 0 24 24" aria-hidden="true" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><path d="M8 6h13M8 12h13M8 18h13M3.5 6h.01M3.5 12h.01M3.5 18h.01"/></svg>
-        Últimos registros
+        <span class="nav-largo">Últimos registros</span><span class="nav-corto">Registros</span>
       </button>
       <button type="button" class="nav-item nav-item-cuenta" id="nav-cuenta">
         <svg viewBox="0 0 24 24" aria-hidden="true" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .34 1.87l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06A1.7 1.7 0 0 0 15 19.4a1.7 1.7 0 0 0-1 1.55V21a2 2 0 1 1-4 0v-.09A1.7 1.7 0 0 0 9 19.4a1.7 1.7 0 0 0-1.87.34l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.7 1.7 0 0 0 4.6 15a1.7 1.7 0 0 0-1.55-1H3a2 2 0 1 1 0-4h.09A1.7 1.7 0 0 0 4.6 9a1.7 1.7 0 0 0-.34-1.87l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.7 1.7 0 0 0 9 4.6a1.7 1.7 0 0 0 1-1.55V3a2 2 0 1 1 4 0v.09A1.7 1.7 0 0 0 15 4.6a1.7 1.7 0 0 0 1.87-.34l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.7 1.7 0 0 0 19.4 9v.09a1.7 1.7 0 0 0 1.55 1H21a2 2 0 1 1 0 4h-.09a1.7 1.7 0 0 0-1.55 1z"/></svg>
@@ -74,7 +74,7 @@
 
   <div class="main">
     <header class="topbar">
-      <div class="crumbs">Mi granja <span class="sep">/</span> <b id="crumb-actual">Panel</b></div>
+      <div class="crumbs">Mi granja <span class="sep">/</span> <b id="crumb-actual">Panel</b><span class="badge b-amber chip-demo oculto" id="chip-demo" title="Estás viendo datos de ejemplo">Demo</span></div>
       <span class="badge b-amber oculto" id="badge-offline" role="status" aria-live="polite"
             title="Sin conexión: puedes seguir registrando y se guarda en el teléfono hasta que vuelva la señal">Sin conexión</span>
       <div class="search">
@@ -609,15 +609,15 @@
 
 <script src="vendor/chart.umd.min.js"></script>
 <!-- SDK de Firebase servido desde el propio dominio: así el panel abre sin internet. -->
-<script src="vendor/firebase/firebase-app-compat.js?v=55"></script>
-<script src="vendor/firebase/firebase-auth-compat.js?v=55"></script>
-<script src="vendor/firebase/firebase-firestore-compat.js?v=55"></script>
+<script src="vendor/firebase/firebase-app-compat.js?v=56"></script>
+<script src="vendor/firebase/firebase-auth-compat.js?v=56"></script>
+<script src="vendor/firebase/firebase-firestore-compat.js?v=56"></script>
 <script src="../firebase-config.js"></script>
-<script src="mock-data.js?v=55"></script>
-<script src="ia-asistente.js?v=55"></script>
-<script src="firestore-data.js?v=55"></script>
-<script src="auth-guard.js?v=55"></script>
-<script src="app.js?v=55"></script>
+<script src="mock-data.js?v=56"></script>
+<script src="ia-asistente.js?v=56"></script>
+<script src="firestore-data.js?v=56"></script>
+<script src="auth-guard.js?v=56"></script>
+<script src="app.js?v=56"></script>
 <script>
 if ("serviceWorker" in navigator) {
   window.addEventListener("load", function () {
