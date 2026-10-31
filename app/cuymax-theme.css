@@ -321,3 +321,22 @@ td.muted,th.muted{color:var(--text-2)}
   .modal{padding:18px;border-radius:var(--r-lg)}
   .kpi-value{font-size:23px}
 }
+
+/* ---------- Cuenta en el celular ----------
+   En pantallas grandes la tarjeta lateral ya tiene Ajustes, Cerrar sesión y el
+   nombre de la granja; en el celular esa tarjeta se oculta para dejar sitio al
+   menú, así que esas opciones se ofrecen aquí. */
+.nav-item-cuenta { display: none; }
+.solo-movil { display: none; }
+
+.ajustes-cuenta {
+  margin-top: 16px;
+  padding-top: 14px;
+  border-top: 1px solid var(--border);
+}
+.ajustes-cuenta b { font-size: 13.5px; }
+
+@media (max-width: 860px) {
+  .nav-item-cuenta { display: flex; }
+  .solo-movil { display: block; }
+}

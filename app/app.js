@@ -379,16 +379,45 @@ async function cargarAjustesGranja() {
   } catch (e) { /* sin conexión: se dejan los campos como están */ }
 }
 
-document.getElementById("btn-ajustes").addEventListener("click", function () {
+function abrirAjustes(forzar) {
   var s = document.getElementById("ajustes");
-  s.classList.toggle("oculto");
+  if (!s) { return; }
+  var mostrar = (typeof forzar === "boolean") ? forzar : s.classList.contains("oculto");
+  s.classList.toggle("oculto", !mostrar);
+  if (!mostrar) { return; }
+
   if (!(typeof MODO_REAL !== "undefined" && MODO_REAL)) {
     document.getElementById("cfg-granja").value = cfg().granja;
     document.getElementById("cfg-clave").value = cfg().clave;
   }
   pintarPush();
   cargarAjustesGranja();
-});
+
+  /* La tarjeta abre al inicio del contenido: se sube la vista para verla junto al menú. */
+  try { window.scrollTo({ top: 0, behavior: "smooth" }); }
+  catch (e) { window.scrollTo(0, 0); }
+
+  /* El bloque «Cuenta y granja» copia lo que ya muestra la tarjeta lateral. */
+  var g = document.getElementById("cuenta-granja");
+  var u = document.getElementById("cuenta-correo");
+  var og = document.getElementById("granja-nombre");
+  var ou = document.getElementById("auth-user");
+  if (g && og) { g.textContent = og.textContent; }
+  if (u && ou) { u.textContent = ou.textContent; }
+}
+
+document.getElementById("btn-ajustes").addEventListener("click", function () { abrirAjustes(); });
+
+var navCuenta = document.getElementById("nav-cuenta");
+if (navCuenta) { navCuenta.addEventListener("click", function () { abrirAjustes(true); }); }
+
+var btnCuentaSalir = document.getElementById("btn-cuenta-salir");
+if (btnCuentaSalir) {
+  btnCuentaSalir.addEventListener("click", function () {
+    if (typeof window.cuymaxSalir === "function") { window.cuymaxSalir(); return; }
+    location.href = "../login.html";
+  });
+}
 
 document.getElementById("btn-cerrar-ajustes").addEventListener("click", function () {
   document.getElementById("ajustes").classList.add("oculto");
