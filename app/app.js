@@ -2214,10 +2214,39 @@ function asistenteAbierto() {
   return !!iaPanel && !iaPanel.hidden;
 }
 
+/* El teclado del celular no encoge la ventana en todos los navegadores: en
+   iPhone el panel se queda a tamaño completo, el navegador empuja la página y
+   el último mensaje se sube dejando un hueco blanco debajo. Medimos el alto que
+   de verdad se ve y pegamos el panel a él. */
+function ajustarPanelIA() {
+  if (!iaPanel) { return; }
+  var vv = window.visualViewport;
+  var enCelular = window.matchMedia("(max-width: 560px)").matches;
+  if (!enCelular || iaPanel.hidden || !vv) {
+    iaPanel.style.height = "";
+    iaPanel.style.transform = "";
+    return;
+  }
+  iaPanel.style.height = Math.round(vv.height) + "px";
+  iaPanel.style.transform = vv.offsetTop > 1 ? "translateY(" + Math.round(vv.offsetTop) + "px)" : "";
+  var caja = document.getElementById("chat-msgs");
+  if (caja) { caja.scrollTop = caja.scrollHeight; }
+}
+
+if (window.visualViewport) {
+  window.visualViewport.addEventListener("resize", ajustarPanelIA);
+  window.visualViewport.addEventListener("scroll", ajustarPanelIA);
+}
+window.addEventListener("orientationchange", function () {
+  setTimeout(ajustarPanelIA, 150);
+});
+
 function abrirAsistente() {
   if (!iaPanel) { return; }
   iaUltimoFoco = document.activeElement;
   iaPanel.hidden = false;
+  document.body.classList.add("ia-abierto");
+  ajustarPanelIA();
   if (iaFab) {
     iaFab.classList.add("oculto");
     iaFab.setAttribute("aria-expanded", "true");
@@ -2235,6 +2264,10 @@ function abrirAsistente() {
 function cerrarAsistente(devolverFoco) {
   if (!iaPanel || iaPanel.hidden) { return; }
   iaPanel.hidden = true;
+  document.body.classList.remove("ia-abierto");
+  ajustarPanelIA();
+  var inp = document.getElementById("chat-texto");
+  if (inp) { inp.blur(); }
   if (iaFab) {
     iaFab.classList.remove("oculto");
     iaFab.setAttribute("aria-expanded", "false");
@@ -2316,17 +2349,31 @@ function pintarPropuestaChat(r) {
   });
 }
 
+/* Enviar no debe robarle el foco al campo: si el botón se queda con el foco,
+   Android cierra el teclado a media conversación. */
+var botonEnviar = document.getElementById("chat-enviar");
+if (botonEnviar) {
+  botonEnviar.addEventListener("mousedown", function (ev) { ev.preventDefault(); });
+}
+
+var enviandoChat = false;
+
 document.getElementById("f-chat").addEventListener("submit", async function (ev) {
   ev.preventDefault();
   var inp = document.getElementById("chat-texto");
   var btn = document.getElementById("chat-enviar");
+  if (enviandoChat) { return; }
   var texto = (inp.value || "").trim();
   if (!texto) { return; }
+  enviandoChat = true;
+  var teniaFoco = document.activeElement === inp;
+  /* Nunca btn.disabled: desactivarlo suelta el foco y se cierra el teclado. */
+  btn.classList.add("cargando");
+  btn.setAttribute("aria-busy", "true");
   burbujaAsistente(escHtml(texto), "u");
   inp.value = "";
   var chips = document.getElementById("chat-chips");
   if (chips) { chips.classList.add("oculto"); }
-  btn.disabled = true;
   var pensando = burbujaAsistente("Pensando…", "a pensando");
   try {
     var r = await api("POST", "asistente", { granja_id: cfg().granja, texto: texto });
@@ -2337,8 +2384,13 @@ document.getElementById("f-chat").addEventListener("submit", async function (ev)
     pensando.remove();
     burbujaAsistente(escHtml("No pude responder: " + e.message), "a err");
   }
-  btn.disabled = false;
-  inp.focus();
+  enviandoChat = false;
+  btn.classList.remove("cargando");
+  btn.removeAttribute("aria-busy");
+  /* Solo devolvemos el foco si lo tenía: si el granjero cerró el teclado a
+     propósito, no se lo volvemos a abrir. */
+  if (teniaFoco && document.activeElement !== inp) { inp.focus({ preventScroll: true }); }
+  ajustarPanelIA();
 });
 
 /* ---------- últimos registros y borrado ---------- */

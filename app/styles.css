@@ -397,13 +397,21 @@ button.nav-item { background: none; font: inherit; text-align: left; width: 100%
   .ia-fab { right: 16px; bottom: 16px; padding: 13px 17px; }
   .ia-fab span { display: none; }
   .ia-panel {
-    right: 0; bottom: 0; left: 0; width: auto; max-width: none;
+    top: 0; right: 0; bottom: auto; left: 0; width: auto; max-width: none;
     height: 100%; max-height: none; border: 0; border-radius: 0;
   }
   .ia-head { padding-top: max(13px, env(safe-area-inset-top)); }
   .ia-form { padding-bottom: max(14px, env(safe-area-inset-bottom)); }
   .ia-panel .chat-chips { flex-wrap: wrap; overflow-x: visible; }
+  /* Con el asistente a pantalla completa el fondo no debe moverse: si se mueve,
+     el panel se descuadra al abrir y cerrar el teclado. */
+  body.ia-abierto { overflow: hidden; }
+  .ia-msgs { overscroll-behavior: contain; -webkit-overflow-scrolling: touch; }
 }
+
+/* El botón de enviar no se desactiva mientras espera: al desactivarlo el
+   navegador le quita el foco al campo y se cierra el teclado. */
+.ia-form button[aria-busy="true"] { opacity: .6; pointer-events: none; }
 
 
 /* ---------- ventana de registro (modal) ---------- */

@@ -4,15 +4,15 @@
    Al publicar cambios se auto-actualiza sin cerrar pestañas (skipWaiting + claim).
    Los archivos locales llevan ?v= para que al subir una versión el navegador no
    reutilice una copia vieja de la caché HTTP (Firebase sirve los .js con max-age). */
-const CACHE = "cuymax-v57";
-const SHELL = ["index.html", "cuymax-theme.css?v=57", "styles.css?v=57", "app.js?v=57",
-  "auth-guard.js?v=57", "mock-data.js?v=57", "ia-asistente.js?v=57", "firestore-data.js?v=57",
+const CACHE = "cuymax-v58";
+const SHELL = ["index.html", "cuymax-theme.css?v=58", "styles.css?v=58", "app.js?v=58",
+  "auth-guard.js?v=58", "mock-data.js?v=58", "ia-asistente.js?v=58", "firestore-data.js?v=58",
   "manifiesto.webmanifest", "logo.png", "icono-180.png", "icono-192.png", "icono-512.png",
   "icono-192-maskable.png", "icono-512-maskable.png", "vendor/chart.umd.min.js",
-  "vendor/firebase/firebase-app-compat.js?v=57",
-  "vendor/firebase/firebase-auth-compat.js?v=57",
-  "vendor/firebase/firebase-firestore-compat.js?v=57",
-  "vendor/fonts/fuentes.css?v=57",
+  "vendor/firebase/firebase-app-compat.js?v=58",
+  "vendor/firebase/firebase-auth-compat.js?v=58",
+  "vendor/firebase/firebase-firestore-compat.js?v=58",
+  "vendor/fonts/fuentes.css?v=58",
   "vendor/fonts/UcC73FwrK3iLTeHuS_nVMrMxCp50SjIa1ZL7.woff2",
   "vendor/fonts/UcC73FwrK3iLTeHuS_nVMrMxCp50SjIa25L7SUc.woff2",
   "vendor/fonts/LDIoaomQNQcsA88c7O9yZ4KMCoOg4Ko20yw.woff2",
