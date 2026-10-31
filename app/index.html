@@ -11,9 +11,9 @@
 <link rel="preconnect" href="https://firestore.googleapis.com" crossorigin>
 <link rel="preconnect" href="https://identitytoolkit.googleapis.com" crossorigin>
 <!-- Tipografías propias: el panel abre sin internet y sin esperar a Google. -->
-<link rel="stylesheet" href="vendor/fonts/fuentes.css?v=58">
-<link rel="stylesheet" href="cuymax-theme.css?v=58">
-<link rel="stylesheet" href="styles.css?v=58">
+<link rel="stylesheet" href="vendor/fonts/fuentes.css?v=59">
+<link rel="stylesheet" href="cuymax-theme.css?v=59">
+<link rel="stylesheet" href="styles.css?v=59">
 <!-- iPhone: icono propio y apertura a pantalla completa al añadir a inicio. -->
 <link rel="apple-touch-icon" href="icono-180.png">
 <meta name="apple-mobile-web-app-capable" content="yes">
@@ -89,6 +89,22 @@
         <span class="ping oculto" id="ping-avisos"></span>
       </button>
     </header>
+
+    <!-- Aviso de instalación: en el celular la tarjeta lateral (donde vive el
+         botón «Instalar app») está oculta, así que la instalación se ofrece aquí. -->
+    <div class="instalar-aviso oculto" id="instalar-aviso" role="region" aria-label="Instalar CuyMax">
+      <span class="instalar-ico" aria-hidden="true">
+        <svg viewBox="0 0 24 24" width="19" height="19" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="6" y="2" width="12" height="20" rx="2.5"/><path d="M12 18h.01"/></svg>
+      </span>
+      <div class="instalar-txt">
+        <b id="instalar-titulo">Instala CuyMax</b>
+        <span id="instalar-detalle">Queda como una app y funciona sin señal.</span>
+      </div>
+      <button type="button" class="btn sm primary" id="instalar-aviso-btn">Instalar</button>
+      <button type="button" class="instalar-cerrar" id="instalar-cerrar" aria-label="Ocultar este aviso">
+        <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg>
+      </button>
+    </div>
 
     <div class="content">
       <section id="ajustes" class="card oculto" aria-label="Ajustes">
@@ -613,15 +629,15 @@
 
 <script src="vendor/chart.umd.min.js"></script>
 <!-- SDK de Firebase servido desde el propio dominio: así el panel abre sin internet. -->
-<script src="vendor/firebase/firebase-app-compat.js?v=58"></script>
-<script src="vendor/firebase/firebase-auth-compat.js?v=58"></script>
-<script src="vendor/firebase/firebase-firestore-compat.js?v=58"></script>
+<script src="vendor/firebase/firebase-app-compat.js?v=59"></script>
+<script src="vendor/firebase/firebase-auth-compat.js?v=59"></script>
+<script src="vendor/firebase/firebase-firestore-compat.js?v=59"></script>
 <script src="../firebase-config.js"></script>
-<script src="mock-data.js?v=58"></script>
-<script src="ia-asistente.js?v=58"></script>
-<script src="firestore-data.js?v=58"></script>
-<script src="auth-guard.js?v=58"></script>
-<script src="app.js?v=58"></script>
+<script src="mock-data.js?v=59"></script>
+<script src="ia-asistente.js?v=59"></script>
+<script src="firestore-data.js?v=59"></script>
+<script src="auth-guard.js?v=59"></script>
+<script src="app.js?v=59"></script>
 <script>
 if ("serviceWorker" in navigator) {
   window.addEventListener("load", function () {

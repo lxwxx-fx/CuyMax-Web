@@ -2750,18 +2750,42 @@ document.getElementById("btn-push-desactivar").addEventListener("click", async f
     venimosADescargar = new URLSearchParams(location.search).get("instalar") === "1";
   } catch (e) { venimosADescargar = false; }
 
+  var aviso = document.getElementById("instalar-aviso");
+  var avisoBtn = document.getElementById("instalar-aviso-btn");
+  var avisoCerrar = document.getElementById("instalar-cerrar");
+  var esIPhone = /iphone|ipad|ipod/i.test(navigator.userAgent);
+
+  function cerrarAviso(recordar) {
+    if (aviso) { aviso.classList.add("oculto"); }
+    if (recordar) {
+      try { sessionStorage.setItem("cuymax_aviso_instalar", "no"); } catch (e) { /* sin almacenamiento */ }
+    }
+  }
+
+  function abrirAviso() {
+    if (!aviso || yaInstalada) { return; }
+    try {
+      if (sessionStorage.getItem("cuymax_aviso_instalar") === "no") { return; }
+    } catch (e) { /* sin almacenamiento */ }
+    if (esIPhone) {
+      /* En iPhone no hay diálogo de instalación: el aviso explica los pasos. */
+      var det = document.getElementById("instalar-detalle");
+      if (det) { det.textContent = "Toca Compartir (el cuadrado con la flecha ↑) y elige «Añadir a pantalla de inicio»."; }
+      if (avisoBtn) { avisoBtn.classList.add("oculto"); }
+    }
+    aviso.classList.remove("oculto");
+  }
+
   if (yaInstalada) {
     if (venimosADescargar) { showToast("Ya tienes CuyMax instalada en este dispositivo"); }
     return;
   }
 
   /* En iPhone no existe el evento de instalación: se muestra con instrucciones. */
-  if (/iphone|ipad|ipod/i.test(navigator.userAgent)) { btn.classList.remove("oculto"); }
+  if (esIPhone) { btn.classList.remove("oculto"); }
   if (venimosADescargar) {
     btn.classList.remove("oculto");
-    setTimeout(function () {
-      btn.scrollIntoView({ behavior: "smooth", block: "nearest" });
-    }, 600);
+    abrirAviso();
   }
 
   window.addEventListener("beforeinstallprompt", function (e) {
@@ -2770,25 +2794,38 @@ document.getElementById("btn-push-desactivar").addEventListener("click", async f
     btn.classList.remove("oculto");
   });
 
-  btn.addEventListener("click", async function () {
+  async function pedirInstalacion() {
     if (pendiente) {
       pendiente.prompt();
       try {
         var r = await pendiente.userChoice;
-        if (r && r.outcome === "accepted") { btn.classList.add("oculto"); }
+        if (r && r.outcome === "accepted") {
+          btn.classList.add("oculto");
+          cerrarAviso(false);
+        }
       } catch (e) { /* el diálogo se cerró sin elegir */ }
       pendiente = null;
       return;
     }
-    if (/iphone|ipad|ipod/i.test(navigator.userAgent)) {
+    if (esIPhone) {
       showToast("Toca Compartir y elige «Añadir a pantalla de inicio»");
     } else {
       showToast("Preparando la instalación… vuelve a pulsar en unos segundos");
     }
-  });
+  }
+
+  btn.addEventListener("click", pedirInstalacion);
+  if (avisoBtn) { avisoBtn.addEventListener("click", pedirInstalacion); }
+  if (avisoCerrar) {
+    avisoCerrar.addEventListener("click", function () {
+      cerrarAviso(true);
+      showToast("Puedes instalar cuando quieras desde el menú del navegador");
+    });
+  }
 
   window.addEventListener("appinstalled", function () {
     btn.classList.add("oculto");
+    cerrarAviso(false);
     showToast("CuyMax instalada en tu teléfono");
   });
 })();
