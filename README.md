@@ -137,19 +137,23 @@ la base son estas reglas. `server/firebase-creds.json` (clave privada del admini
 
 ## Verificación del sistema publicado
 
-Tres scripts con `puppeteer-core` prueban el sitio **en producción**, no en local:
+Cinco scripts con `puppeteer-core` prueban el sitio **en producción**, no en local:
 
 | Script | Qué comprueba |
 | --- | --- |
 | `verificar-sistema.js` | Portada y panel: carga, las 6 secciones, consola sin errores, layout móvil |
 | `verificar-flujos.js` | Flujos críticos: aviso de instalación, modo real sin sesión, login, recarga sin internet |
 | `verificar-recursos.js` | Que ningún recurso de la página devuelva 404 |
+| `verificar-registro.js` | 30 comprobaciones funcionales en demo: registra peso, muerte, alimento, venta y parto, y verifica que los KPI reaccionen |
+| `prueba-real.js` | Modo real: abre una ventana para que inicies sesión a mano y luego comprueba el panel con datos reales (solo lectura) |
 
 ```bash
 npm install puppeteer-core     # una sola vez
 node verificar-sistema.js
 node verificar-flujos.js
 node verificar-recursos.js
+node verificar-registro.js
+node prueba-real.js            # pide iniciar sesión en la ventana que se abre
 ```
 
 Necesitan un navegador basado en Chromium. Los scripts apuntan a Edge en Windows
