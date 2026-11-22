@@ -362,6 +362,19 @@ document.getElementById("buscador").addEventListener("keydown", async function (
 
 /* La granja guarda su nombre y sus precios en Firestore (modo real) o en la
    base local (modo instalado). En demo se muestran datos de ejemplo. */
+/* El nombre de la granja se ve en tres sitios: la tarjeta lateral, el breadcrumb
+   de la barra superior y el bloque «Cuenta y granja» del móvil. Se cambia en un
+   solo punto para que no queden desincronizados (antes el breadcrumb tenía el
+   texto fijo «Mi granja» y nunca cambiaba). */
+function ponerNombreGranja(nombre) {
+  var n = String(nombre || "").trim();
+  if (!n) { return; }
+  ["granja-nombre", "crumb-granja", "cuenta-granja"].forEach(function (id) {
+    var el = document.getElementById(id);
+    if (el) { el.textContent = n; }
+  });
+}
+
 async function cargarAjustesGranja() {
   try {
     var gj = await api("GET", "granja");
@@ -375,7 +388,7 @@ async function cargarAjustesGranja() {
     if (forr) { forr.value = p.forraje_kg == null ? "" : p.forraje_kg; }
     if (cuy) { cuy.value = p.cuy == null ? "" : p.cuy; }
     if (gj.nombre) {
-      document.getElementById("granja-nombre").textContent = gj.nombre;
+      ponerNombreGranja(gj.nombre);
       if (!(typeof MODO_REAL !== "undefined" && MODO_REAL)) {
         document.getElementById("cfg-granja").value = cfg().granja;
       }
@@ -438,7 +451,7 @@ document.getElementById("cfg-guardar").addEventListener("click", async function 
   if (clave) { localStorage.setItem("cuymax_clave", clave); }
   else { localStorage.removeItem("cuymax_clave"); }
   var nombre = document.getElementById("cfg-nombre").value.trim();
-  if (nombre) { document.getElementById("granja-nombre").textContent = nombre; }
+  if (nombre) { ponerNombreGranja(nombre); }
   try {
     await api("POST", "granja", {
       granja_id: cfg().granja,
