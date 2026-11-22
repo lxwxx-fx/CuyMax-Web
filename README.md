@@ -134,3 +134,24 @@ otra cuenta, la base devuelve 403. Las reglas se publican con el comando anterio
 **Nota de seguridad**: el `apiKey` de Firebase del cliente es público por diseño; lo que protege
 la base son estas reglas. `server/firebase-creds.json` (clave privada del administrador) y
 `server/.env` nunca deben subirse al repositorio.
+
+## Verificación del sistema publicado
+
+Tres scripts con `puppeteer-core` prueban el sitio **en producción**, no en local:
+
+| Script | Qué comprueba |
+| --- | --- |
+| `verificar-sistema.js` | Portada y panel: carga, las 6 secciones, consola sin errores, layout móvil |
+| `verificar-flujos.js` | Flujos críticos: aviso de instalación, modo real sin sesión, login, recarga sin internet |
+| `verificar-recursos.js` | Que ningún recurso de la página devuelva 404 |
+
+```bash
+npm install puppeteer-core     # una sola vez
+node verificar-sistema.js
+node verificar-flujos.js
+node verificar-recursos.js
+```
+
+Necesitan un navegador basado en Chromium. Los scripts apuntan a Edge en Windows
+(`const EDGE = "C:/Program Files (x86)/Microsoft/Edge/Application/msedge.exe"`); en otro
+sistema cambia esa línea por la ruta de tu Chrome o Edge.
