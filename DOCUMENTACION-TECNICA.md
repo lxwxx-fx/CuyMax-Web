@@ -5,7 +5,7 @@
 | Sistema | CuyMax — registro y control productivo de granjas de cuyes |
 | Autor | Roger Alberto Gonzales Peña |
 | Empresa | DC PROJECTS |
-| Versión del panel | v60 (`app/sw.js`, constante `CACHE`; 11 referencias `?v=60` en `app/index.html`) |
+| Versión del panel | v61 (`app/sw.js`, constante `CACHE`; 11 referencias `?v=61` en `app/index.html`) |
 | Commit documentado | `fb887e2` (rama `main`) |
 | Fecha del documento | 22 de noviembre de 2026 |
 | Repositorio | https://github.com/lxwxx-fx/CuyMax-Web |

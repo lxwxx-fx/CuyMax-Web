@@ -117,7 +117,11 @@ small { color: var(--text-2); }
 .cero { color: var(--text-3); font-weight: 700; }
 
 /* ---------- ajustes panel (topbar, kpis, gráfica) ---------- */
-.search input { width: 300px; }
+/* El ancho fijo solo en pantallas anchas: en el celular el buscador debe
+   ocupar el hueco disponible y no tapar los botones de tema y avisos. */
+@media (min-width: 861px) {
+  .search input { width: 300px; }
+}
 .kpi { min-height: 148px; display: flex; flex-direction: column; }
 .kpi-top { min-height: 34px; }
 .kpi-value { flex: 1; display: flex; align-items: center; }
