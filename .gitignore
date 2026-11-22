@@ -28,6 +28,24 @@ __pycache__/
 # Documentacion personal (informes, manuales, propuestas). No se versiona.
 docs/
 
+# Informes academicos (SENATI): contienen datos personales, notas y firmas.
+INFORME/
+
+# Presentacion de la exposicion: binarios que se regeneran desde _fuentes/.
+CuyMax-Exposicion/
+
+# Capturas de trabajo y artefactos de prueba manual.
+shot-*.png
+prod-*.png
+
+# Scripts de un solo uso (rellenar el informe, parches puntuales, capturas de docs).
+llenar_informe.py
+parche-*.py
+capturas-docs.js
+capturar-exposicion.js
+test-*.js
+verif-v58.js
+
 # Notas internas del asistente (memoria de trabajo). No son parte del proyecto.
 .workbuddy-ai/
 
