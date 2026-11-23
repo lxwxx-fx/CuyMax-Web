@@ -101,22 +101,29 @@ El panel tiene un chat en la pestaña **Asistente** con dos motores:
    Las acciones de registro **siempre** se muestran como propuesta y solo se guardan si
    la persona pulsa *Confirmar*.
 
-2. **IA en la nube** (`functions/`, Groq). Entiende lenguaje libre. La clave
-   `GROQ_API_KEY` vive en Secret Manager, nunca en el navegador. Está **desactivada**
-   (`FS_IA_ACTIVA = false`) porque Cloud Functions exige el plan **Blaze**.
+2. **IA en la nube** (Worker de Cloudflare, Groq). Entiende lenguaje libre. Se activa
+   cuando `CUYMAX_IA_URL` apunta al Worker (en `firebase-config.js`); la clave de Groq
+   vive como secreto del Worker, nunca en el navegador. La ruta antigua por `functions/`
+   (Cloud Functions) quedó como legado porque exige el plan **Blaze**.
 
-### Activar la IA (cuando haya Blaze)
+### Activar la IA (Worker de Cloudflare)
 
 ```bash
-# 1. Clave de Groq en Secret Manager (pide el valor, no queda en el repo)
-firebase functions:secrets:set GROQ_API_KEY
-
-# 2. Publicar función + sitio
-firebase deploy --only functions,hosting
+cd worker
+npx wrangler login                          # abre el navegador
+npx wrangler secret put GROQ_API_KEY        # pega la clave (no queda en el repo)
+npm run deploy                              # publica el Worker
 ```
 
-Luego poner `var FS_IA_ACTIVA = true;` en `app/firestore-data.js` y volver a desplegar
-Hosting. No hay que tocar nada más: si la función falla, el chat vuelve solo a las reglas.
+Poner la URL que imprime Wrangler en `firebase-config.js`:
+
+```js
+var CUYMAX_IA_URL = "https://cuymax-ia.TU-SUBDOMINIO.workers.dev";
+```
+
+Y volver a publicar el panel (`firebase deploy --only hosting`). `FS_IA_ACTIVA`
+(en `app/firestore-data.js`) se calcula solo a partir de `CUYMAX_IA_URL`: si la URL
+queda vacía o el Worker falla, el chat vuelve a las reglas sin tocar nada más.
 
 ## Despliegue
 
