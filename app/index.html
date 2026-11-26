@@ -11,9 +11,9 @@
 <link rel="preconnect" href="https://firestore.googleapis.com" crossorigin>
 <link rel="preconnect" href="https://identitytoolkit.googleapis.com" crossorigin>
 <!-- Tipografías propias: el panel abre sin internet y sin esperar a Google. -->
-<link rel="stylesheet" href="vendor/fonts/fuentes.css?v=63">
-<link rel="stylesheet" href="cuymax-theme.css?v=63">
-<link rel="stylesheet" href="styles.css?v=63">
+<link rel="stylesheet" href="vendor/fonts/fuentes.css?v=66">
+<link rel="stylesheet" href="cuymax-theme.css?v=66">
+<link rel="stylesheet" href="styles.css?v=66">
 <!-- iPhone: icono propio y apertura a pantalla completa al añadir a inicio. -->
 <link rel="apple-touch-icon" href="icono-180.png">
 <meta name="apple-mobile-web-app-capable" content="yes">
@@ -305,8 +305,15 @@
           <div class="kpi"><div class="kpi-top"><span class="chip-icon v"><svg viewBox="0 0 24 24" aria-hidden="true" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 17l6-6 4 4 8-8M15 7h6v6"/></svg></span><span class="kpi-label">Ingreso por guano</span></div><div class="kpi-value" id="kpi-guano-ingreso">–</div><div class="kpi-bottom"><span class="delta flat" id="delta-guano-ingreso">–</span></div></div>
         </div>
 
+        <div class="toolbar guano-seg">
+          <div class="segmented" id="seg-guano">
+            <button type="button" data-g="recoleccion" class="on">Recolectar</button>
+            <button type="button" data-g="venta">Vender</button>
+          </div>
+        </div>
+
         <div class="grid grid-2 mt">
-          <div class="card">
+          <div class="card guano-bloque" data-g="recoleccion">
             <div class="card-head"><div><h3>Registrar recolección</h3><div class="sub">Kilos retirados de una poza</div></div></div>
             <form id="f-guano-rec">
               <div class="field"><label for="guano-rec-lote">Poza</label>
@@ -317,7 +324,7 @@
               <div class="r" aria-live="polite"></div>
             </form>
           </div>
-          <div class="card">
+          <div class="card guano-bloque" data-g="venta">
             <div class="card-head"><div><h3>Registrar venta</h3><div class="sub">Abono vendido, cobrado por kilo</div></div></div>
             <form id="f-guano-venta">
               <div class="field"><label for="guano-venta-kg">Kilos vendidos <span class="req" aria-hidden="true">*</span></label>
@@ -684,15 +691,15 @@
 
 <script src="vendor/chart.umd.min.js"></script>
 <!-- SDK de Firebase servido desde el propio dominio: así el panel abre sin internet. -->
-<script src="vendor/firebase/firebase-app-compat.js?v=63"></script>
-<script src="vendor/firebase/firebase-auth-compat.js?v=63"></script>
-<script src="vendor/firebase/firebase-firestore-compat.js?v=63"></script>
+<script src="vendor/firebase/firebase-app-compat.js?v=66"></script>
+<script src="vendor/firebase/firebase-auth-compat.js?v=66"></script>
+<script src="vendor/firebase/firebase-firestore-compat.js?v=66"></script>
 <script src="../firebase-config.js"></script>
-<script src="mock-data.js?v=63"></script>
-<script src="ia-asistente.js?v=63"></script>
-<script src="firestore-data.js?v=63"></script>
-<script src="auth-guard.js?v=63"></script>
-<script src="app.js?v=63"></script>
+<script src="mock-data.js?v=66"></script>
+<script src="ia-asistente.js?v=66"></script>
+<script src="firestore-data.js?v=66"></script>
+<script src="auth-guard.js?v=66"></script>
+<script src="app.js?v=66"></script>
 <script>
 if ("serviceWorker" in navigator) {
   window.addEventListener("load", function () {

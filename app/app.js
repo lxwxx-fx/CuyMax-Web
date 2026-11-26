@@ -2518,11 +2518,13 @@ async function cargarGuano() {
         }), [1, 2])
       : vacio("Todavía no hay recolecciones de guano en esta granja.");
 
+    /* Cinco columnas en escritorio; en el celular el CSS oculta la poza y deja
+       fecha, movimiento, kilos e importe, que es lo que se mira en el campo. */
     movs.innerHTML = r.movimientos.length
       ? tabla(["Fecha", "Movimiento", "Poza", "Kg", "Importe"], r.movimientos.slice(0, 12).map(function (m) {
           var esVenta = m.tipo === "venta";
           return "<tr><td>" + fechaCorta2(m.fecha) + "</td>" +
-            "<td>" + (esVenta ? "Venta" + (m.comprador ? " · " + escHtml(m.comprador) : "") : "Recolección") + "</td>" +
+            "<td>" + (esVenta ? "Venta" : "Recolección") + "</td>" +
             "<td>" + (m.lote ? escHtml(m.lote) : "—") + "</td>" +
             '<td class="num">' + m.kg.toFixed(1) + "</td>" +
             '<td class="num">' + (esVenta ? soles(m.kg * (m.precio_kg || 0)) : "—") + "</td></tr>";
@@ -2545,6 +2547,29 @@ function actualizarTotalGuano() {
   var el = document.getElementById(id);
   if (el) { el.addEventListener("input", actualizarTotalGuano); }
 });
+
+/* En el celular se ve un solo formulario a la vez: el selector evita bajar
+   media pantalla para pasar de recolectar a vender. En escritorio los dos
+   siguen visibles y el selector está oculto por CSS. */
+(function () {
+  var seg = document.getElementById("seg-guano");
+  if (!seg) { return; }
+  var bloques = Array.prototype.slice.call(document.querySelectorAll("#tab-guano .guano-bloque"));
+  function elegir(tipo) {
+    Array.prototype.forEach.call(seg.querySelectorAll("button"), function (b) {
+      b.classList.toggle("on", b.getAttribute("data-g") === tipo);
+    });
+    bloques.forEach(function (b) {
+      b.classList.toggle("guano-oculto-movil", b.getAttribute("data-g") !== tipo);
+    });
+  }
+  seg.addEventListener("click", function (ev) {
+    var b = ev.target.closest ? ev.target.closest("button[data-g]") : null;
+    if (!b) { return; }
+    elegir(b.getAttribute("data-g"));
+  });
+  elegir("recoleccion");
+})();
 
 conectar("f-guano-rec", "guano", function (f) {
   return { granja_id: cfg().granja, tipo: "recoleccion", lote: f.lote.value, kg: num(f.kg.value) };

@@ -932,12 +932,33 @@ html[data-theme="dark"] dialog.modal {
   .instalar-cerrar:hover { background: rgba(0, 0, 0, .06); color: var(--text); }
 }
 
-/* Guano: en el celular los cuatro indicadores van en 2x2. Con una sola
-   columna (la regla general de .kpis) los formularios de registro quedaban
-   a más de media pantalla de distancia. */
+/* Guano en el celular: el objetivo es que registrar no obligue a bajar media
+   pantalla. Un solo formulario a la vez (selector Recolectar/Vender),
+   indicadores compactos y tablas resumidas. En escritorio no cambia nada. */
+#tab-guano .guano-seg { display: none; }
+/* Las dos tarjetas de registro no se estiran a la misma altura: la de venta
+   tiene más campos y dejaba un hueco grande bajo la de recolección. */
+#tab-guano .grid-2 { align-items: start; }
+
 @media (max-width: 560px) {
-  #tab-guano .kpis { grid-template-columns: 1fr 1fr; }
-  #tab-guano .kpi { padding: 12px; }
-  #tab-guano .kpi-value { font-size: 20px; }
+  #tab-guano .guano-seg { display: flex; margin: 12px 0 0; }
+  #tab-guano .kpis { grid-template-columns: 1fr 1fr; gap: 8px; }
+  /* .kpi trae min-height:148px y .kpi-top 34px (styles.css:125); en el celular
+     eso deja tarjetas de 148px para tres datos cortos. */
+  #tab-guano .kpi { padding: 9px 11px; min-height: 0; }
+  #tab-guano .kpi-top { min-height: 0; }
+  #tab-guano .kpi-top .chip-icon { display: none; }
+  #tab-guano .kpi-value { flex: none; font-size: 19px; }
   #tab-guano .kpi-label { font-size: 12px; }
+  #tab-guano .kpi-bottom { font-size: 11px; margin-top: 2px; }
+  #tab-guano .guano-oculto-movil { display: none; }
+  #tab-guano .card-head .sub { display: none; }
+  /* Filas de tabla compactas: con 12px de relleno cada fila medía 64px. */
+  #tab-guano thead th { padding: 0 8px 8px; }
+  #tab-guano tbody td { padding: 8px; font-size: 12.5px; }
+  #guano-por-poza th:nth-child(4),
+  #guano-por-poza td:nth-child(4) { display: none; }
+  #guano-movs th:nth-child(3),
+  #guano-movs td:nth-child(3) { display: none; }
+  #guano-movs tbody tr:nth-child(n+6) { display: none; }
 }
