@@ -1067,9 +1067,18 @@ async function llenarSelectsLotes() {
     var op = lotes.length
       ? lotes.map(function (l) { return '<option value="' + l.codigo + '">' + l.codigo + ' (' + l.vivos + ' vivos)</option>'; }).join("")
       : '<option value="">Sin pozas disponibles</option>';
+    /* Al reconstruir las opciones el navegador vuelve a la primera poza. Si el
+       granjero ya había elegido una, se conserva: si no, en una conexión lenta
+       el registro se guardaría en otra poza sin que se dé cuenta. */
     ids.forEach(function (id) {
       var s = document.getElementById(id);
-      if (s) { s.innerHTML = op; }
+      if (!s) { return; }
+      var previo = s.value;
+      s.innerHTML = op;
+      if (!previo) { return; }
+      for (var i = 0; i < s.options.length; i++) {
+        if (s.options[i].value === previo) { s.value = previo; return; }
+      }
     });
     botones.forEach(function (b) { if (b) { b.disabled = !lotes.length; } });
     cargarPistaPeso();
