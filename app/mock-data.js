@@ -102,6 +102,17 @@ var MOCK = {
     { id: 3, codigo: "U-10", tipo: "engorde", capacidad: 40 }
   ],
 
+  /* Guano: recolecciones por poza y ventas por kilo (sin poza, es stock comun).
+     Con estos datos: 53 kg recolectados, 20 vendidos, 33 en stock, S/ 50. */
+  guano: [
+    { id: "g1", tipo: "recoleccion", lote: "P-001", fecha: demoHaceDias(21), kg: 14.5, precio_kg: null, comprador: null },
+    { id: "g2", tipo: "recoleccion", lote: "P-002", fecha: demoHaceDias(14), kg: 11.0, precio_kg: null, comprador: null },
+    { id: "g3", tipo: "recoleccion", lote: "P-003", fecha: demoHaceDias(10), kg: 6.5, precio_kg: null, comprador: null },
+    { id: "g4", tipo: "venta", lote: null, fecha: demoHaceDias(7), kg: 20, precio_kg: 2.5, comprador: "Vivero San José" },
+    { id: "g5", tipo: "recoleccion", lote: "P-001", fecha: demoHaceDias(4), kg: 12.0, precio_kg: null, comprador: null },
+    { id: "g6", tipo: "recoleccion", lote: "P-004", fecha: demoHaceDias(2), kg: 9.0, precio_kg: null, comprador: null }
+  ],
+
   avisos: [
     { id: 1, tipo: "parto_proximo", hembra: "H003", poza: "U-01", fecha_objetivo: demoEnDias(1), fecha_aviso: demoHaceDias(0),
       mensaje: "La hembra H003 (ubicación U-01) pare mañana. Prepara la ubicación.", enviada: false, estado: "pendiente" },

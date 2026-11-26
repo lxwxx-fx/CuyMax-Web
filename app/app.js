@@ -234,6 +234,31 @@ function apiDemo(metodo, ruta, datos) {
     }
     throw new Error("Ese parto programado no existe.");
   }
+  if (metodo === "GET" && base === "guano") { return MOCK.guano || []; }
+  if (metodo === "POST" && base === "guano") {
+    MOCK.guano = MOCK.guano || [];
+    var tipoG = String(datos.tipo || "") === "venta" ? "venta" : "recoleccion";
+    var kgG = Number(datos.kg);
+    if (!(kgG > 0)) { throw new Error("Los kilos de guano deben ser mayores que cero."); }
+    var nuevoG = { id: "g" + Date.now(), tipo: tipoG, fecha: demoHaceDias(0), kg: kgG,
+      precio_kg: null, comprador: null };
+    if (tipoG === "recoleccion") {
+      var lg = lote(datos.lote);
+      nuevoG.lote = lg.codigo;
+      MOCK.guano.push(nuevoG);
+      return { ok: true, resumen: kgG + " kg de guano recolectados en " + lg.codigo, detalle: "Se suman al stock de abono de la granja." };
+    }
+    var stockG = resumirGuano(MOCK.guano).stock;
+    if (kgG > stockG) { throw new Error("Solo tienes " + stockG.toFixed(2) + " kg de guano en stock."); }
+    var precioG = Number(datos.precio_kg);
+    if (!(precioG >= 0)) { throw new Error("El precio por kilo no puede ser negativo."); }
+    nuevoG.lote = null;
+    nuevoG.precio_kg = precioG;
+    nuevoG.comprador = datos.comprador ? String(datos.comprador).trim() : null;
+    MOCK.guano.push(nuevoG);
+    return { ok: true, resumen: kgG + " kg de guano vendidos",
+      detalle: "Ingreso: S/ " + (kgG * precioG).toFixed(2) + ". Quedan " + (stockG - kgG).toFixed(2) + " kg." };
+  }
   throw new Error("Sin conexión. Revisa tu internet e inténtalo de nuevo.");
 }
 
@@ -250,6 +275,55 @@ function cuando(d) {
 
 function soles(n) {
   return n === null || n === undefined ? "—" : "S/ " + Number(n).toFixed(2);
+}
+
+/* ---------- guano ----------
+   Un solo cálculo para demo y para real: recibe los movimientos y devuelve
+   totales, stock y producción por poza. El stock es de la granja entera porque
+   el guano se junta de todas las pozas antes de venderlo. */
+function resumirGuano(movs) {
+  var r = { kg_rec: 0, kg_vend: 0, stock: 0, ingreso: 0, precio_promedio: null,
+            por_poza: [], movimientos: [] };
+  var por = {};
+  (movs || []).forEach(function (m) {
+    var kg = Number(m.kg) || 0;
+    if (!(kg > 0)) { return; }
+    var esVenta = String(m.tipo || "") === "venta";
+    var cod = String(m.lote || "").toUpperCase();
+    if (esVenta) {
+      r.kg_vend += kg;
+      r.ingreso += kg * (Number(m.precio_kg) || 0);
+    } else {
+      r.kg_rec += kg;
+      if (!por[cod]) { por[cod] = { codigo: cod, kg: 0, ultima: "" }; }
+      por[cod].kg += kg;
+      var f = String(m.fecha || "").slice(0, 10);
+      if (f > por[cod].ultima) { por[cod].ultima = f; }
+    }
+    r.movimientos.push({
+      id: m.id || m.__id || "",
+      tipo: esVenta ? "venta" : "recoleccion",
+      lote: cod, fecha: String(m.fecha || "").slice(0, 10), kg: kg,
+      precio_kg: m.precio_kg == null ? null : Number(m.precio_kg),
+      comprador: m.comprador || null
+    });
+  });
+  r.stock = Math.max(0, Math.round((r.kg_rec - r.kg_vend) * 100) / 100);
+  r.kg_rec = Math.round(r.kg_rec * 100) / 100;
+  r.kg_vend = Math.round(r.kg_vend * 100) / 100;
+  r.ingreso = Math.round(r.ingreso * 100) / 100;
+  r.precio_promedio = r.kg_vend > 0 ? Math.round((r.ingreso / r.kg_vend) * 100) / 100 : null;
+  r.por_poza = Object.keys(por).map(function (k) {
+    var p = por[k];
+    p.kg = Math.round(p.kg * 100) / 100;
+    p.pct = r.kg_rec > 0 ? Math.round((p.kg / r.kg_rec) * 1000) / 10 : 0;
+    return p;
+  }).sort(function (a, b) { return b.kg - a.kg; });
+  r.movimientos.sort(function (a, b) {
+    if (a.fecha === b.fecha) { return 0; }
+    return a.fecha < b.fecha ? 1 : -1;
+  });
+  return r;
 }
 
 function animarNumero(id, desde, hacia, formato) {
@@ -297,14 +371,14 @@ function esqueleto(n) {
 var calma = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
 /* ---------- pestañas y ajustes ---------- */
-var TITULOS = { panel: "Panel", lote: "Poza", registrar: "Registrar", avisos: "Avisos", registros: "Últimos registros", asistente: "Asistente" };
+var TITULOS = { panel: "Panel", lote: "Poza", guano: "Guano", registrar: "Registrar", avisos: "Avisos", registros: "Últimos registros", asistente: "Asistente" };
 function irA(t) {
   /* Solo pestañas conocidas: si llega algo vacío o inventado, no se toca la vista. */
   if (!t || !TITULOS[t]) { return; }
   document.querySelectorAll(".nav-item").forEach(function (x) {
     x.classList.toggle("active", x.dataset.tab === t);
   });
-  ["panel", "lote", "registrar", "avisos", "registros"].forEach(function (k) {
+  ["panel", "lote", "guano", "registrar", "avisos", "registros"].forEach(function (k) {
     var el = document.getElementById("tab-" + k);
     if (el) { el.classList.toggle("active", k === t); }
   });
@@ -312,6 +386,7 @@ function irA(t) {
   document.getElementById("crumb-actual").textContent = TITULOS[t] || "Panel";
   if (t === "panel") { cargarPanel(); }
   if (t === "lote") { cargarLotes(); }
+  if (t === "guano") { cargarGuano(); }
   if (t === "registros") { cargarRegistros(); }
   if (t === "avisos") { cargarAvisos(); }
 }
@@ -982,8 +1057,8 @@ async function dibujarNacimientos() {
 
 /* ---------- ficha de poza ---------- */
 async function llenarSelectsLotes() {
-  var ids = ["sel-lote", "peso-lote", "muerte-lote", "alim-lote", "ing-lote", "venta-lote", "faena-lote", "retiro-lote"];
-  var botones = ["f-peso", "f-muerte", "f-alimento", "f-venta", "f-faena", "f-retiro"].map(function (id) {
+  var ids = ["sel-lote", "peso-lote", "muerte-lote", "alim-lote", "ing-lote", "venta-lote", "faena-lote", "retiro-lote", "guano-rec-lote"];
+  var botones = ["f-peso", "f-muerte", "f-alimento", "f-venta", "f-faena", "f-retiro", "f-guano-rec"].map(function (id) {
     var f = document.getElementById(id);
     return f ? f.querySelector('button[type="submit"]') : null;
   });
@@ -2406,10 +2481,78 @@ document.getElementById("f-chat").addEventListener("submit", async function (ev)
   ajustarPanelIA();
 });
 
+/* ---------- pestaña Guano ---------- */
+async function cargarGuano() {
+  var porPoza = document.getElementById("guano-por-poza");
+  var movs = document.getElementById("guano-movs");
+  if (!porPoza || !movs) { return; }
+  try {
+    var r = resumirGuano(await api("GET", "guano"));
+
+    animarNumero("kpi-guano-rec", 0, r.kg_rec, function (v) { return v.toFixed(1) + " kg"; });
+    animarNumero("kpi-guano-vend", 0, r.kg_vend, function (v) { return v.toFixed(1) + " kg"; });
+    animarNumero("kpi-guano-stock", 0, r.stock, function (v) { return v.toFixed(1) + " kg"; });
+    animarNumero("kpi-guano-ingreso", 0, r.ingreso, soles);
+
+    pintarDeltaTexto("delta-guano-vend",
+      r.kg_rec > 0 ? Math.round((r.kg_vend / r.kg_rec) * 100) + " % de lo recolectado" : "Sin recolecciones");
+    pintarDeltaTexto("delta-guano-stock", r.stock > 0 ? "Disponible para vender" : "Nada en stock");
+    pintarDeltaTexto("delta-guano-ingreso",
+      r.precio_promedio === null ? "Sin ventas todavía" : "Promedio S/ " + r.precio_promedio.toFixed(2) + "/kg");
+
+    porPoza.innerHTML = r.por_poza.length
+      ? tabla(["Poza", "Kg recolectados", "Participación", "Última recolección"], r.por_poza.map(function (p) {
+          return '<tr><td class="cell-strong">' + escHtml(p.codigo) + "</td>" +
+            '<td class="num">' + p.kg.toFixed(1) + " kg</td>" +
+            '<td class="num">' + p.pct.toFixed(1) + " %</td>" +
+            "<td>" + (p.ultima ? fechaCorta2(p.ultima) : "—") + "</td></tr>";
+        }), [1, 2])
+      : vacio("Todavía no hay recolecciones de guano en esta granja.");
+
+    movs.innerHTML = r.movimientos.length
+      ? tabla(["Fecha", "Movimiento", "Poza", "Kg", "Importe"], r.movimientos.slice(0, 12).map(function (m) {
+          var esVenta = m.tipo === "venta";
+          return "<tr><td>" + fechaCorta2(m.fecha) + "</td>" +
+            "<td>" + (esVenta ? "Venta" + (m.comprador ? " · " + escHtml(m.comprador) : "") : "Recolección") + "</td>" +
+            "<td>" + (m.lote ? escHtml(m.lote) : "—") + "</td>" +
+            '<td class="num">' + m.kg.toFixed(1) + "</td>" +
+            '<td class="num">' + (esVenta ? soles(m.kg * (m.precio_kg || 0)) : "—") + "</td></tr>";
+        }), [3, 4])
+      : vacio("Sin movimientos de guano todavía.");
+  } catch (e) {
+    porPoza.innerHTML = tarjeta("No se pudo cargar el guano: " + escHtml(e.message));
+    movs.innerHTML = "";
+  }
+}
+
+/* El total se ve antes de guardar, para no vender a ciegas. */
+function actualizarTotalGuano() {
+  var kg = Number((document.getElementById("guano-venta-kg") || {}).value) || 0;
+  var pr = Number((document.getElementById("guano-venta-precio") || {}).value) || 0;
+  var el = document.getElementById("guano-venta-total");
+  if (el) { el.textContent = "Total: " + soles(kg * pr); }
+}
+["guano-venta-kg", "guano-venta-precio"].forEach(function (id) {
+  var el = document.getElementById(id);
+  if (el) { el.addEventListener("input", actualizarTotalGuano); }
+});
+
+conectar("f-guano-rec", "guano", function (f) {
+  return { granja_id: cfg().granja, tipo: "recoleccion", lote: f.lote.value, kg: num(f.kg.value) };
+}, function () { cargarGuano(); return "Recolección de guano guardada"; });
+
+conectar("f-guano-venta", "guano", function (f) {
+  return {
+    granja_id: cfg().granja, tipo: "venta", kg: num(f.kg.value),
+    precio_kg: num(f.precio_kg.value), comprador: f.comprador.value || null
+  };
+}, function () { actualizarTotalGuano(); cargarGuano(); return "Venta de guano guardada"; });
+
 /* ---------- últimos registros y borrado ---------- */
 var NOMBRE_REGISTRO = {
   peso: "Peso", muerte: "Muerte", alimento: "Alimento", parto: "Parto",
-  destete: "Destete", venta: "Venta", faena: "Faena", retiro: "Retiro"
+  destete: "Destete", venta: "Venta", faena: "Faena", retiro: "Retiro",
+  guano: "Guano", guano_venta: "Venta guano"
 };
 
 function filaRegistro(r) {

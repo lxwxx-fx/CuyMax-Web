@@ -619,6 +619,69 @@ async function fsRegistrarFaena(datos) {
   return { ok: true, resumen: cant + " cuy(es) faenados de la poza " + cod, detalle: "Quedan " + (vivos - cant) + " vivos." };
 }
 
+/* ---------- guano ----------
+   El guano se recolecta por poza pero se vende del stock comun de la granja:
+   una venta no se puede atribuir a una poza concreta. Por eso `lote` es null
+   en las ventas y el stock se calcula con el total recolectado menos el total
+   vendido (misma cuenta que hace resumirGuano() en app.js). */
+async function fsGuanoMovs() {
+  var movs = await fsTodos("guano");
+  return movs.map(function (x) {
+    return {
+      id: x.__id,
+      tipo: String(x.tipo || "") === "venta" ? "venta" : "recoleccion",
+      lote: x.lote ? fsUp(x.lote) : null,
+      fecha: String(x.fecha || "").slice(0, 10),
+      kg: fsNum(x.kg),
+      precio_kg: x.precio_kg == null ? null : fsNum(x.precio_kg),
+      comprador: x.comprador || null
+    };
+  });
+}
+
+async function fsRegistrarGuano(datos) {
+  var tipo = String(datos.tipo || "") === "venta" ? "venta" : "recoleccion";
+  var kg = fsNum(datos.kg);
+  if (!(kg > 0)) { throw new Error("Los kilos de guano deben ser mayores que cero."); }
+  if (kg > 5000) { throw new Error("Revisa los kilos: " + kg + " no parece una cantidad real."); }
+
+  if (tipo === "recoleccion") {
+    var cod = fsUp(datos.lote);
+    if (!cod) { throw new Error("Elige la poza de donde se recogió el guano."); }
+    var actual = await fsLoteActual(cod);
+    if (!actual) { throw new Error("No existe la poza " + cod + " en la granja."); }
+    await fsdb().collection("guano").add({
+      granja_id: fsGranja(), tipo: "recoleccion", lote: cod, fecha: fsHoy(),
+      kg: kg, precio_kg: null, comprador: null, creado_en: new Date().toISOString()
+    });
+    return {
+      ok: true, resumen: kg + " kg de guano recolectados en " + cod,
+      detalle: "Se suman al stock de abono de la granja."
+    };
+  }
+
+  var previos = await fsGuanoMovs();
+  var rec = 0, ven = 0;
+  previos.forEach(function (m) {
+    if (m.tipo === "venta") { ven += m.kg; } else { rec += m.kg; }
+  });
+  var stock = Math.max(0, rec - ven);
+  if (kg > stock) { throw new Error("Solo tienes " + stock.toFixed(2) + " kg de guano en stock."); }
+  var precio = fsNum(datos.precio_kg);
+  if (precio < 0) { throw new Error("El precio por kilo no puede ser negativo."); }
+  await fsdb().collection("guano").add({
+    granja_id: fsGranja(), tipo: "venta", lote: null, fecha: fsHoy(),
+    kg: kg, precio_kg: precio,
+    comprador: datos.comprador ? String(datos.comprador).trim() : null,
+    creado_en: new Date().toISOString()
+  });
+  return {
+    ok: true, resumen: kg + " kg de guano vendidos",
+    detalle: "Ingreso: S/ " + (Math.round(kg * precio * 100) / 100).toFixed(2) +
+      ". Quedan " + (Math.round((stock - kg) * 100) / 100).toFixed(2) + " kg."
+  };
+}
+
 async function fsRegistrarRetiro(datos) {
   var cod = fsUp(datos.lote);
   var actual = await fsLoteActual(cod);
@@ -1213,6 +1276,8 @@ async function apiReal(metodo, ruta, datos) {
     }).sort(function (a, b) { return (a.fecha_fin_retiro || "") < (b.fecha_fin_retiro || "") ? -1 : 1; });
   }
 
+  if (metodo === "GET" && base === "guano") { return fsGuanoMovs(); }
+
   if (metodo === "GET" && base === "resumen-economico") {
     var pr = fsPreciosDe(await fsGranjaDoc());
     if (!pr) { return []; }
@@ -1323,7 +1388,7 @@ async function apiReal(metodo, ruta, datos) {
     /* Ocho colecciones en paralelo: antes eran ~8 idas y vueltas seguidas. */
     var cols = await Promise.all([
       fsTodos("pesajes"), fsTodos("mortalidad"), fsTodos("consumo_alimento"), fsTodos("partos"),
-      fsTodos("destetes"), fsTodos("ventas"), fsTodos("faenas"), fsTodos("retiros")
+      fsTodos("destetes"), fsTodos("ventas"), fsTodos("faenas"), fsTodos("retiros"), fsTodos("guano")
     ]);
     cols[0].forEach(function (x) {
       todo.push({ tipo: "peso", id: x.__id, fecha: String(x.fecha || "").slice(0, 10), lote: x.lote || "", hembra: null,
@@ -1357,6 +1422,14 @@ async function apiReal(metodo, ruta, datos) {
     cols[7].forEach(function (x) {
       todo.push({ tipo: "retiro", id: x.__id, fecha: String(x.fecha_inicio || "").slice(0, 10), lote: x.lote || "", hembra: null,
         detalle: (x.producto || "") + " · " + fsNum(x.dias) + " días de retiro" });
+    });
+    cols[8].forEach(function (x) {
+      var esVenta = String(x.tipo || "") === "venta";
+      todo.push({ tipo: esVenta ? "guano_venta" : "guano", id: x.__id, fecha: String(x.fecha || "").slice(0, 10),
+        lote: x.lote || null, hembra: null,
+        detalle: esVenta
+          ? "Guano: " + fsNum(x.kg) + " kg · S/ " + (fsNum(x.kg) * fsNum(x.precio_kg)).toFixed(2)
+          : "Guano recolectado: " + fsNum(x.kg) + " kg" });
     });
     todo.sort(function (a, b) {
       if (a.fecha === b.fecha) { return 0; }
@@ -1404,6 +1477,7 @@ async function apiReal(metodo, ruta, datos) {
     return fsBorrarAvisoAtendido(decodeURIComponent(partes[1] || ""));
   }
 
+  if (metodo === "POST" && base === "guano") { return fsRegistrarGuano(datos || {}); }
   if (metodo === "POST" && base === "pesajes") { return fsRegistrarPeso(datos || {}); }
   if (metodo === "POST" && base === "muertes") { return fsRegistrarMuerte(datos || {}); }
   if (metodo === "POST" && base === "alimento") { return fsRegistrarAlimento(datos || {}); }
@@ -1422,7 +1496,8 @@ async function apiReal(metodo, ruta, datos) {
   if (metodo === "DELETE" && partes[0] === "registros") {
     var mapa = {
       peso: "pesajes", muerte: "mortalidad", alimento: "consumo_alimento", parto: "partos",
-      destete: "destetes", venta: "ventas", faena: "faenas", retiro: "retiros"
+      destete: "destetes", venta: "ventas", faena: "faenas", retiro: "retiros",
+      guano: "guano", guano_venta: "guano"
     };
     var tipoReg = partes[1];
     var col = mapa[tipoReg];

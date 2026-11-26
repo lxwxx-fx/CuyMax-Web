@@ -11,9 +11,9 @@
 <link rel="preconnect" href="https://firestore.googleapis.com" crossorigin>
 <link rel="preconnect" href="https://identitytoolkit.googleapis.com" crossorigin>
 <!-- Tipografías propias: el panel abre sin internet y sin esperar a Google. -->
-<link rel="stylesheet" href="vendor/fonts/fuentes.css?v=61">
-<link rel="stylesheet" href="cuymax-theme.css?v=61">
-<link rel="stylesheet" href="styles.css?v=61">
+<link rel="stylesheet" href="vendor/fonts/fuentes.css?v=62">
+<link rel="stylesheet" href="cuymax-theme.css?v=62">
+<link rel="stylesheet" href="styles.css?v=62">
 <!-- iPhone: icono propio y apertura a pantalla completa al añadir a inicio. -->
 <link rel="apple-touch-icon" href="icono-180.png">
 <meta name="apple-mobile-web-app-capable" content="yes">
@@ -37,6 +37,10 @@
       <button type="button" class="nav-item" data-tab="lote">
         <svg viewBox="0 0 24 24" aria-hidden="true" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 7V5h16v2h-2v12h-3v2H9v-2H6V7H4zm4 0v10h8V7H8z"/></svg>
         Poza
+      </button>
+      <button type="button" class="nav-item" data-tab="guano">
+        <svg viewBox="0 0 24 24" aria-hidden="true" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><path d="M7 9h10l1.5 11h-13L7 9z"/><path d="M9 9V7a3 3 0 0 1 6 0v2"/><path d="M9.5 15.5h5"/></svg>
+        Guano
       </button>
       <button type="button" class="nav-item" data-tab="registrar">
         <svg viewBox="0 0 24 24" aria-hidden="true" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 5h2v6h6v2h-6v6h-2v-6H5v-2h6V5z"/></svg>
@@ -286,6 +290,57 @@
           <div class="card-head"><div><h3>Economía de la poza</h3></div></div>
           <div id="ficha-eco" aria-live="polite"></div>
         </div>
+        </div>
+      </section>
+
+      <section id="tab-guano" class="view" aria-label="Guano">
+        <div class="page-head">
+          <div><h1>Guano</h1><div class="sub">Recolección y venta de abono orgánico</div></div>
+        </div>
+
+        <div class="kpis grid">
+          <div class="kpi"><div class="kpi-top"><span class="chip-icon a"><svg viewBox="0 0 24 24" aria-hidden="true" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M7 9h10l1.5 11h-13L7 9z"/><path d="M9 9V7a3 3 0 0 1 6 0v2"/></svg></span><span class="kpi-label">Kg recolectados</span></div><div class="kpi-value" id="kpi-guano-rec">–</div><div class="kpi-bottom"><span class="delta flat">Total acumulado</span></div></div>
+          <div class="kpi"><div class="kpi-top"><span class="chip-icon b"><svg viewBox="0 0 24 24" aria-hidden="true" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18l-2 9H5L3 6zm3 13h.01M17 19h.01"/></svg></span><span class="kpi-label">Kg vendidos</span></div><div class="kpi-value" id="kpi-guano-vend">–</div><div class="kpi-bottom"><span class="delta flat" id="delta-guano-vend">–</span></div></div>
+          <div class="kpi"><div class="kpi-top"><span class="chip-icon g"><svg viewBox="0 0 24 24" aria-hidden="true" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 10h16v11H4zM4 10l2-6h12l2 6"/></svg></span><span class="kpi-label">Stock disponible</span></div><div class="kpi-value" id="kpi-guano-stock">–</div><div class="kpi-bottom"><span class="delta flat" id="delta-guano-stock">–</span></div></div>
+          <div class="kpi"><div class="kpi-top"><span class="chip-icon v"><svg viewBox="0 0 24 24" aria-hidden="true" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 17l6-6 4 4 8-8M15 7h6v6"/></svg></span><span class="kpi-label">Ingreso por guano</span></div><div class="kpi-value" id="kpi-guano-ingreso">–</div><div class="kpi-bottom"><span class="delta flat" id="delta-guano-ingreso">–</span></div></div>
+        </div>
+
+        <div class="grid grid-2 mt">
+          <div class="card">
+            <div class="card-head"><div><h3>Registrar recolección</h3><div class="sub">Kilos retirados de una poza</div></div></div>
+            <form id="f-guano-rec">
+              <div class="field"><label for="guano-rec-lote">Poza</label>
+                <select id="guano-rec-lote" name="lote" required><option value="">Cargando pozas...</option></select></div>
+              <div class="field"><label for="guano-rec-kg">Kilos recolectados <span class="req" aria-hidden="true">*</span></label>
+                <div class="campo-u"><input id="guano-rec-kg" name="kg" type="number" step="any" min="0.1" max="500" inputmode="decimal" placeholder="Ej. 8.5" required data-msg="Ingresa los kilos recolectados"><span class="u">kg</span></div></div>
+              <button type="submit" class="btn primary w-100">Guardar recolección</button>
+              <div class="r" aria-live="polite"></div>
+            </form>
+          </div>
+          <div class="card">
+            <div class="card-head"><div><h3>Registrar venta</h3><div class="sub">Abono vendido, cobrado por kilo</div></div></div>
+            <form id="f-guano-venta">
+              <div class="field"><label for="guano-venta-kg">Kilos vendidos <span class="req" aria-hidden="true">*</span></label>
+                <div class="campo-u"><input id="guano-venta-kg" name="kg" type="number" step="any" min="0.1" max="5000" inputmode="decimal" placeholder="Ej. 50" required data-msg="Ingresa los kilos vendidos"><span class="u">kg</span></div></div>
+              <div class="field"><label for="guano-venta-precio">Precio por kilo <span class="req" aria-hidden="true">*</span></label>
+                <div class="campo-u"><input id="guano-venta-precio" name="precio_kg" type="number" step="any" min="0" inputmode="decimal" value="2.50" required data-msg="Ingresa el precio por kilo"><span class="u">S/</span></div></div>
+              <div class="field"><label for="guano-venta-comprador">Comprador (opcional)</label>
+                <input id="guano-venta-comprador" name="comprador" type="text" placeholder="Ej. vivero San José"></div>
+              <p class="hintline" id="guano-venta-total" aria-live="polite">Total: S/ 0.00</p>
+              <button type="submit" class="btn primary w-100">Guardar venta</button>
+              <div class="r" aria-live="polite"></div>
+            </form>
+          </div>
+        </div>
+
+        <div class="card mt">
+          <div class="card-head"><div><h3>Producción por poza</h3><div class="sub">Kilos recolectados y su participación en el total</div></div></div>
+          <div id="guano-por-poza" aria-live="polite"><div class="skeleton"></div><div class="skeleton"></div></div>
+        </div>
+
+        <div class="card mt">
+          <div class="card-head"><div><h3>Últimos movimientos</h3><div class="sub">Recolecciones y ventas de guano</div></div></div>
+          <div id="guano-movs" aria-live="polite"><div class="skeleton"></div><div class="skeleton"></div></div>
         </div>
       </section>
 
@@ -629,15 +684,15 @@
 
 <script src="vendor/chart.umd.min.js"></script>
 <!-- SDK de Firebase servido desde el propio dominio: así el panel abre sin internet. -->
-<script src="vendor/firebase/firebase-app-compat.js?v=61"></script>
-<script src="vendor/firebase/firebase-auth-compat.js?v=61"></script>
-<script src="vendor/firebase/firebase-firestore-compat.js?v=61"></script>
+<script src="vendor/firebase/firebase-app-compat.js?v=62"></script>
+<script src="vendor/firebase/firebase-auth-compat.js?v=62"></script>
+<script src="vendor/firebase/firebase-firestore-compat.js?v=62"></script>
 <script src="../firebase-config.js"></script>
-<script src="mock-data.js?v=61"></script>
-<script src="ia-asistente.js?v=61"></script>
-<script src="firestore-data.js?v=61"></script>
-<script src="auth-guard.js?v=61"></script>
-<script src="app.js?v=61"></script>
+<script src="mock-data.js?v=62"></script>
+<script src="ia-asistente.js?v=62"></script>
+<script src="firestore-data.js?v=62"></script>
+<script src="auth-guard.js?v=62"></script>
+<script src="app.js?v=62"></script>
 <script>
 if ("serviceWorker" in navigator) {
   window.addEventListener("load", function () {

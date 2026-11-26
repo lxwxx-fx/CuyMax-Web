@@ -53,7 +53,7 @@ function enganchar(page, etiqueta) {
   console.log("  HTTP:", r2.status(), "| titulo:", await p2.title());
   console.log("  botones de navegacion:", navs.length, "->", navs.map((n) => n.tab).join(", "));
 
-  const secciones = ["panel", "lote", "registrar", "avisos", "registros"];
+  const secciones = ["panel", "lote", "guano", "registrar", "avisos", "registros"];
   for (const s of secciones) {
     await p2.evaluate((t) => {
       const b = document.querySelector('.nav-item[data-tab="' + t + '"]');

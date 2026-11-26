@@ -22,7 +22,22 @@ y precio por cuy) se cargan en **Ajustes**.
 
 Colecciones de Firestore: `granjas`, `lotes`, `pozas`, `pesajes`, `mortalidad`,
 `consumo_alimento`, `partos`, `partos_proximos`, `destetes`, `ventas`, `faenas`, `retiros`,
-`avisos_atendidos`.
+`guano`, `avisos_atendidos`.
+
+## Secciones del panel
+
+| Sección | Qué hace |
+| --- | --- |
+| **Panel** | Indicadores (partos próximos, cuyes vivos, pozas en retiro, margen), evolución, nacimientos, resumen económico por poza |
+| **Poza** | Ficha de una poza: curva de peso, mortalidad, economía y último alimento |
+| **Guano** | Recolección de abono por poza y venta por kilo: stock disponible, ingreso acumulado y producción por poza |
+| **Registrar** | Acceso rápido a los diez movimientos (peso, muerte, alimento, parto, ingreso, destete, venta, faena, retiro) |
+| **Avisos** | Avisos del día (partos próximos, destetes vencidos, pesajes pendientes) y atendidos |
+| **Últimos registros** | Movimientos recientes de todas las colecciones, con opción de borrar |
+| **Cuenta** | Solo en móvil: correo de la sesión y cierre de sesión |
+
+El ingreso del guano se informa **aparte** del margen de los cuyes: el margen de la tabla
+económica sigue siendo ingreso por venta de cuyes menos costo de alimento.
 
 ## Asistente con IA (Worker de Cloudflare)
 
@@ -148,7 +163,7 @@ Cinco scripts con `puppeteer-core` prueban el sitio **en producción**, no en lo
 
 | Script | Qué comprueba |
 | --- | --- |
-| `verificar-sistema.js` | Portada y panel: carga, las 6 secciones, consola sin errores, layout móvil |
+| `verificar-sistema.js` | Portada y panel: carga, las 7 secciones, consola sin errores, layout móvil |
 | `verificar-flujos.js` | Flujos críticos: aviso de instalación, modo real sin sesión, login, recarga sin internet |
 | `verificar-recursos.js` | Que ningún recurso de la página devuelva 404 |
 | `verificar-registro.js` | 30 comprobaciones funcionales en demo: registra peso, muerte, alimento, venta y parto, y verifica que los KPI reaccionen |

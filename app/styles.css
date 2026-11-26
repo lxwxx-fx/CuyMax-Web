@@ -931,3 +931,13 @@ html[data-theme="dark"] dialog.modal {
   }
   .instalar-cerrar:hover { background: rgba(0, 0, 0, .06); color: var(--text); }
 }
+
+/* Guano: en el celular los cuatro indicadores van en 2x2. Con una sola
+   columna (la regla general de .kpis) los formularios de registro quedaban
+   a más de media pantalla de distancia. */
+@media (max-width: 560px) {
+  #tab-guano .kpis { grid-template-columns: 1fr 1fr; }
+  #tab-guano .kpi { padding: 12px; }
+  #tab-guano .kpi-value { font-size: 20px; }
+  #tab-guano .kpi-label { font-size: 12px; }
+}
