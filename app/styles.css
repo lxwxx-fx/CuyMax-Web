@@ -962,3 +962,38 @@ html[data-theme="dark"] dialog.modal {
   #guano-movs td:nth-child(3) { display: none; }
   #guano-movs tbody tr:nth-child(n+6) { display: none; }
 }
+
+/* ---------- Cabecera compacta en el celular ----------
+   Antes el menú ocupaba tres filas de 44 px y la barra superior dos líneas:
+   el contenido empezaba en y=263 de un teléfono de 844 px. Ahora el menú es
+   una sola fila deslizable y la barra superior cabe en una línea. */
+@media (max-width: 480px) {
+  .sidebar {
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    overflow-y: hidden;
+    padding: 6px 10px;
+    scrollbar-width: none;
+    -webkit-overflow-scrolling: touch;
+  }
+  .sidebar::-webkit-scrollbar { display: none; }
+  .nav-group { width: auto; flex: none; display: flex; flex-wrap: nowrap; gap: 4px; }
+  button.nav-item {
+    width: auto; flex: none; min-height: 34px;
+    justify-content: center; padding: 6px 11px; font-size: 13px;
+  }
+  .topbar { flex-wrap: nowrap; min-height: 50px; gap: 6px; padding: 6px 10px; }
+  .crumbs { flex: 1 1 auto; flex-basis: auto; max-width: 200px; gap: 3px; font-size: 12px; }
+  .crumbs #crumb-granja {
+    display: inline-block; max-width: 100px; overflow: hidden;
+    text-overflow: ellipsis; white-space: nowrap; vertical-align: bottom;
+  }
+  .crumbs b { white-space: nowrap; }
+  .crumbs .chip-demo { font-size: 10px; padding: 1px 5px; }
+  .search { flex: 0 1 100px; min-width: 90px; }
+  .search input { height: 34px; font-size: 12px; padding: 0 10px 0 30px; }
+  .search svg { left: 9px; }
+  .topbar .icon-btn { width: 34px; height: 34px; }
+  .topbar .icon-btn svg { width: 16px; height: 16px; }
+  .content { padding-top: 12px; }
+}

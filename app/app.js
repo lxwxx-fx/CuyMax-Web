@@ -372,6 +372,16 @@ var calma = window.matchMedia && window.matchMedia("(prefers-reduced-motion: red
 
 /* ---------- pestañas y ajustes ---------- */
 var TITULOS = { panel: "Panel", lote: "Poza", guano: "Guano", registrar: "Registrar", avisos: "Avisos", registros: "Últimos registros", asistente: "Asistente" };
+/* En el celular el menú es una sola fila deslizable. Dejar la pestaña activa
+   centrada evita que al entrar, por ejemplo, en Registros no se vea nada. */
+function centrarNavActivo() {
+  var nav = document.querySelector(".sidebar");
+  var act = nav && nav.querySelector(".nav-item.active");
+  if (!nav || !act || nav.scrollWidth <= nav.clientWidth + 2) { return; }
+  var nr = nav.getBoundingClientRect();
+  var ar = act.getBoundingClientRect();
+  nav.scrollLeft += (ar.left - nr.left) - (nav.clientWidth - ar.width) / 2;
+}
 function irA(t) {
   /* Solo pestañas conocidas: si llega algo vacío o inventado, no se toca la vista. */
   if (!t || !TITULOS[t]) { return; }
@@ -384,6 +394,7 @@ function irA(t) {
   });
   document.title = "CuyMax · " + (TITULOS[t] || "Panel");
   document.getElementById("crumb-actual").textContent = TITULOS[t] || "Panel";
+  centrarNavActivo();
   if (t === "panel") { cargarPanel(); }
   if (t === "lote") { cargarLotes(); }
   if (t === "guano") { cargarGuano(); }
@@ -421,7 +432,9 @@ window.addEventListener("DOMContentLoaded", function () {
       if (btnMov) btnMov.style.display = "none";
     }
   }
+  centrarNavActivo();
 });
+window.addEventListener("resize", centrarNavActivo);
 document.getElementById("btn-campana").addEventListener("click", function () { irA("avisos"); });
 document.getElementById("buscador").addEventListener("keydown", async function (ev) {
   if (ev.key !== "Enter") { return; }
